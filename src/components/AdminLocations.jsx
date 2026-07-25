@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import LocationPicker from './LocationPicker';
+import ContentFilters from './ContentFilters';
 
 const BILLING_LABELS = {
   free: 'Grátis',
@@ -474,6 +475,16 @@ export default function AdminLocations({ isOwner }) {
                       O link é salvo junto ao clicar em "Salvar".
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* Filtro de conteúdo (NextDNS) — só ao editar (precisa do ID) */}
+              {editing && (
+                <div className="border-t pt-4">
+                  <ContentFilters
+                    locationId={editing.id}
+                    initialFilters={editing.content_filters || {}}
+                  />
                 </div>
               )}
 
