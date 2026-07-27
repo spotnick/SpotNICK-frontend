@@ -6,7 +6,7 @@ import AdminLocations from './AdminLocations';
 import AdminAccessPoints from './AdminAccessPoints';
 import AdminMikrotikRouters from './AdminMikrotikRouters';
 import ConsumptionDashboard from './ConsumptionDashboard';
-
+import SmsBalanceCard from './SmsBalanceCard';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -50,6 +50,12 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold text-spotnicik-primary">SpotNICK</h1>
             <span className="text-xs bg-spotnicik-dark text-white px-2 py-1 rounded">ADMIN</span>
           </div>
+      {isOwner && (
+        <div className="max-w-5xl mx-auto px-4 pt-4">
+          <SmsBalanceCard />
+        </div>
+      )}
+		  
           <button
             onClick={() => navigate('/dashboard')}
             className="text-sm text-spotnicik-cyan hover:underline"
