@@ -11,6 +11,20 @@ function formatBytes(bytes) {
   return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
+// Formata minutos de saldo para exibição amigável (ex: "2h 30min", "45min", "3 dias")
+function formatBalance(minutes) {
+  const m = Number(minutes) || 0;
+  if (m < 60) return `${m}min`;
+  if (m < 1440) {
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    return rem > 0 ? `${h}h ${rem}min` : `${h}h`;
+  }
+  const days = Math.floor(m / 1440);
+  const remH = Math.floor((m % 1440) / 60);
+  return remH > 0 ? `${days}d ${remH}h` : `${days} dia${days > 1 ? 's' : ''}`;
+}
+
 export default function StatusWifi() {
   const [searchParams] = useSearchParams();
 
@@ -126,41 +140,22 @@ export default function StatusWifi() {
             </div>
           ) : plan ? (
             <div className="bg-spotnicik-light rounded-xl p-4 mb-5">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase mb-3">Seu saldo (aproximado)</h2>
-              <div className="space-y-3 text-sm">
-                {plan.hours.bought > 0 && (
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-500">Horas de acesso</span>
-                      <span className="text-spotnicik-primary font-bold">
-                        ~{plan.hours.remaining}h restantes
-                      </span>
+              <h2 className="text-xs font-semibold text-gray-500 uppercase mb-3">Seu saldo</h2>
+              <div className="text-center">
+                {plan.balance_minutes > 0 ? (
+                  <>
+                    <div className="text-3xl font-bold text-spotnicik-primary">
+                      {formatBalance(plan.balance_minutes)}
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {plan.hours.bought}h compradas · {plan.hours.used}h usadas
-                    </div>
-                  </div>
-                )}
-                {plan.data_gb.bought > 0 && (
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-500">Dados extras</span>
-                      <span className="text-spotnicik-primary font-bold">
-                        ~{plan.data_gb.remaining} GB restantes
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {plan.data_gb.bought} GB comprados · {plan.data_gb.used} GB usados
-                    </div>
-                  </div>
-                )}
-                {plan.hours.bought === 0 && plan.data_gb.bought === 0 && (
-                  <p className="text-gray-500 text-center">Nenhum pacote ativo no momento.</p>
+                    <div className="text-xs text-gray-400 mt-1">de acesso disponível</div>
+                  </>
+                ) : (
+                  <p className="text-gray-500 py-2">
+                    Sem saldo ativo.<br />
+                    <span className="text-xs">Adquira um pacote para continuar navegando.</span>
+                  </p>
                 )}
               </div>
-              <p className="text-[10px] text-gray-400 mt-3 text-center">
-                * Valores aproximados, podem levar alguns minutos para atualizar.
-              </p>
             </div>
           ) : null}
 
