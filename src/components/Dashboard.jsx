@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import Pagamentos from './Pagamentos';
 import Perfil from './Perfil';
 import LocationsMap from './LocationsMap';
+import SaldoCard from './SaldoCard';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('home');
@@ -105,12 +106,8 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'home' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card Status */}
-            <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-spotnicik-primary">
-              <h3 className="text-spotnicik-dark font-semibold text-sm uppercase">Status</h3>
-              <p className="text-3xl font-bold text-spotnicik-primary mt-2">Ativo ✅</p>
-              <p className="text-spotnicik-dark text-xs mt-2">Sua conta está verificada</p>
-            </div>
+            {/* Card Saldo */}
+            <SaldoCard />
 
             {/* Card Dados */}
             <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-spotnicik-cyan">
