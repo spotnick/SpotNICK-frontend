@@ -3,6 +3,7 @@ import api from '../services/api';
 
 export default function SmsBalanceCard() {
   const [saldo, setSaldo] = useState(null);
+  const [expiraEm, setExpiraEm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,6 +13,7 @@ export default function SmsBalanceCard() {
     try {
       const { data } = await api.get('/api/admin/sms-balance');
       setSaldo(data.saldo);
+      setExpiraEm(data.expira_em);
     } catch (err) {
       setError(err.response?.data?.error || 'Erro ao consultar saldo.');
     } finally {
@@ -32,10 +34,15 @@ export default function SmsBalanceCard() {
         ) : error ? (
           <p className="text-sm text-red-600 mt-1">{error}</p>
         ) : (
-          <p className="text-2xl font-bold text-spotnicik-primary mt-1">
-            {saldo != null ? saldo : '—'}
-            <span className="text-sm font-normal text-gray-400 ml-1">créditos</span>
-          </p>
+          <>
+            <p className="text-2xl font-bold text-spotnicik-primary mt-1">
+              {saldo != null ? saldo : '—'}
+              <span className="text-sm font-normal text-gray-400 ml-1">créditos</span>
+            </p>
+            {expiraEm && (
+              <p className="text-xs text-gray-400 mt-0.5">Expira em {expiraEm}</p>
+            )}
+          </>
         )}
       </div>
       <button
