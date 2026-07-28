@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import LocationPicker from './LocationPicker';
 import ContentFilters from './ContentFilters';
+import LocationAdmins from './LocationAdmins';
 
 const BILLING_LABELS = {
   free: 'Grátis',
@@ -487,7 +488,12 @@ export default function AdminLocations({ isOwner }) {
                   />
                 </div>
               )}
-
+              {/* Administradores do local — apenas o dono pode gerenciar */}
+              {editing && isOwner && (
+                <div className="border-t pt-4">
+                  <LocationAdmins locationId={editing.id} />
+                </div>
+              )}
               {form.show_ads && !editing && (
                 <div className="border-t pt-4">
                   <p className="text-xs text-gray-500">
