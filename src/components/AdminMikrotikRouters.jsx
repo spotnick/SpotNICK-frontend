@@ -329,7 +329,9 @@ export default function AdminMikrotikRouters() {
             </div>
 
             <p className="text-sm text-gray-600 mb-3">
-              Cole este script no <strong>New Terminal</strong> do Winbox, no roteador do local correspondente.
+              Cole estas linhas no <strong>New Terminal</strong> do Winbox, no roteador do local correspondente.
+              O Mikrotik vai baixar e executar o restante do provisionamento sozinho — não é preciso colar
+              nenhum outro comando.
             </p>
 
             <pre className="bg-spotnicik-dark text-green-400 text-xs p-4 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
@@ -340,8 +342,13 @@ export default function AdminMikrotikRouters() {
               onClick={handleCopyScript}
               className="mt-4 w-full bg-spotnicik-primary text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
             >
-              {copied ? '✓ Copiado!' : '📋 Copiar script'}
+              {copied ? '✓ Copiado!' : '📋 Copiar comandos'}
             </button>
+
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              O provisionamento completo leva alguns segundos (baixa certificado e configura tudo).
+              Aguarde a mensagem final antes de fechar o terminal.
+            </p>
           </div>
         </div>
       )}
