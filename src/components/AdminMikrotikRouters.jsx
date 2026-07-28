@@ -7,8 +7,12 @@ const STATUS_INFO = {
   never:   { label: 'Nunca conectou', classes: 'bg-gray-100 text-gray-600' },
 };
 
+const ROUTER_TYPE_LABEL = {
+  wifi_direct: '📶 WiFi próprio',
+  ethernet_ap: '🔌 Ethernet → AP externo',
+};
+
 // Considera "online" se o heartbeat chegou nos últimos 10 minutos
-// (o script manda a cada 5 min, então 10 min de folga cobre uma falha pontual)
 function getStatus(lastHeartbeatAt) {
   if (!lastHeartbeatAt) return 'never';
   const minutesSince = (Date.now() - new Date(lastHeartbeatAt).getTime()) / 60000;
@@ -22,9 +26,9 @@ export default function AdminMikrotikRouters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ location_id: '', name: '' });
+  const [form, setForm] = useState({ location_id: '', name: '', router_type: 'wifi_direct' });
   const [saving, setSaving] = useState(false);
-  const [scriptModal, setScriptModal] = useState(null); // { name, script }
+  const [scriptModal, setScriptModal] = useState(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function AdminMikrotikRouters() {
   }, [loadRouters, filterLocation]);
 
   const openCreate = () => {
-    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '' });
+    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct' });
     setShowForm(true);
   };
 
@@ -75,7 +79,6 @@ export default function AdminMikrotikRouters() {
       const { data } = await api.post('/api/admin/mikrotik-routers', form);
       setShowForm(false);
       await loadRouters(filterLocation);
-      // Já abre o script para copiar, recém-criado
       setScriptModal({ name: data.router.name, script: data.script });
     } catch (err) {
       alert(err.response?.data?.error || 'Erro ao cadastrar roteador.');
@@ -165,6 +168,7 @@ export default function AdminMikrotikRouters() {
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                       {r.locations?.name && <span>📍 {r.locations.name}</span>}
+                      <span>{ROUTER_TYPE_LABEL[r.router_type] || ROUTER_TYPE_LABEL.wifi_direct}</span>
                       {r.current_ip && <span>IP: {r.current_ip}</span>}
                       <span>Último sinal: {formatDate(r.last_heartbeat_at)}</span>
                     </div>
@@ -229,6 +233,56 @@ export default function AdminMikrotikRouters() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
                   placeholder="Roteador Principal"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-2">Como o WiFi é distribuído? *</label>
+                <div className="space-y-2">
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                      form.router_type === 'wifi_direct'
+                        ? 'border-spotnicik-primary bg-spotnicik-light'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="router_type"
+                      value="wifi_direct"
+                      checked={form.router_type === 'wifi_direct'}
+                      onChange={handleChange}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-spotnicik-dark">📶 WiFi próprio deste roteador</div>
+                      <div className="text-xs text-gray-500">O HotSpot roda direto na interface WiFi do Mikrotik.</div>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                      form.router_type === 'ethernet_ap'
+                        ? 'border-spotnicik-primary bg-spotnicik-light'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="router_type"
+                      value="ethernet_ap"
+                      checked={form.router_type === 'ethernet_ap'}
+                      onChange={handleChange}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-spotnicik-dark">🔌 Ethernet → Access Point externo</div>
+                      <div className="text-xs text-gray-500">
+                        Este Mikrotik só gerencia o HotSpot; a distribuição sem fio é feita
+                        por um AP externo (de terceiros) ligado na porta <strong>ether2</strong>.
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
