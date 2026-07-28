@@ -26,7 +26,7 @@ export default function AdminMikrotikRouters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ location_id: '', name: '', router_type: 'wifi_direct' });
+  const [form, setForm] = useState({ location_id: '', name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
   const [saving, setSaving] = useState(false);
   const [scriptModal, setScriptModal] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -59,7 +59,7 @@ export default function AdminMikrotikRouters() {
   }, [loadRouters, filterLocation]);
 
   const openCreate = () => {
-    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct' });
+    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
     setShowForm(true);
   };
 
@@ -278,11 +278,30 @@ export default function AdminMikrotikRouters() {
                       <div className="text-sm font-medium text-spotnicik-dark">🔌 Ethernet → Access Point externo</div>
                       <div className="text-xs text-gray-500">
                         Este Mikrotik só gerencia o HotSpot; a distribuição sem fio é feita
-                        por um AP externo (de terceiros) ligado na porta <strong>ether2</strong>.
+                        por um AP externo (de terceiros).
                       </div>
                     </div>
                   </label>
                 </div>
+
+                {form.router_type === 'ethernet_ap' && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+                      Porta Ethernet de saída
+                    </label>
+                    <input
+                      type="text"
+                      name="ethernet_port"
+                      value={form.ethernet_port}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                      placeholder="ether2"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Varia por equipamento: ether2, sfp2, combo1... Confira em <code>/interface print</code> no Mikrotik.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">
