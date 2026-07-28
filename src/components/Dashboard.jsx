@@ -1,7 +1,8 @@
 import Historico from './Historico';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
 import Pagamentos from './Pagamentos';
 import Perfil from './Perfil';
 import LocationsMap from './LocationsMap';
@@ -11,6 +12,25 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === 'owner') {
+      setHasAdminAccess(true);
+      return;
+    }
+    // role normal não revela se a pessoa administra algum local
+    // (isso é um vínculo separado) — checamos direto com o backend
+    (async () => {
+      try {
+        await api.get('/api/admin/my-access');
+        setHasAdminAccess(true);
+      } catch {
+        setHasAdminAccess(false);
+      }
+    })();
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -28,7 +48,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-spotnicik-dark">Bem-vindo, {user?.name}!</span>
-            {user?.role === 'owner' && (
+            {hasAdminAccess && (
               <button
                 onClick={() => navigate('/admin')}
                 className="px-4 py-2 bg-spotnicik-dark text-white rounded-lg hover:bg-gray-800 transition"
@@ -36,7 +56,7 @@ export default function Dashboard() {
                 Admin
               </button>
             )}
-			<button
+                        <button
               onClick={handleLogout}
               className="px-4 py-2 bg-spotnicik-pink text-white rounded-lg hover:bg-red-600 transition"
             >
@@ -59,7 +79,7 @@ export default function Dashboard() {
           >
             Histórico
           </button>
-		  <button
+                  <button
             onClick={() => setActiveTab('home')}
             className={`py-4 px-2 font-medium transition ${
               activeTab === 'home'
