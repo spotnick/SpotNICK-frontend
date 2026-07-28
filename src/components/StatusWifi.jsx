@@ -76,8 +76,10 @@ export default function StatusWifi() {
   }, [username]);
 
   const handleNavigate = () => {
-    // Redireciona para um site — o usuário já está liberado para navegar
-    window.location.href = 'https://spotnick.app.br';
+    // O usuário já está liberado para navegar (autenticado no HotSpot).
+    // Mandamos para um site neutro — spotnick.app.br exigiria login no
+    // app, o que não faz sentido aqui (o usuário é um convidado do WiFi).
+    window.location.href = 'https://www.google.com';
   };
 
   const handleLogout = () => {
