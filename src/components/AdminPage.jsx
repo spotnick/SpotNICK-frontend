@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
 import AdminUsers from './AdminUsers';
 import AdminLocations from './AdminLocations';
 import AdminAccessPoints from './AdminAccessPoints';
@@ -11,9 +12,26 @@ import SmsBalanceCard from './SmsBalanceCard';
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('users');
+  const [tab, setTab] = useState('locations');
 
-  if (loading) {
+  const [access, setAccess] = useState(null); // { isOwner, locationIds } | null (ainda carregando) | false (sem acesso)
+  const [accessLoading, setAccessLoading] = useState(true);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    (async () => {
+      try {
+        const { data } = await api.get('/api/admin/my-access');
+        setAccess(data);
+      } catch {
+        setAccess(false); // sem acesso admin (backend já barrou)
+      } finally {
+        setAccessLoading(false);
+      }
+    })();
+  }, [loading, user]);
+
+  if (loading || accessLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-spotnicik-light">
         <div className="w-10 h-10 border-4 border-spotnicik-primary border-t-transparent rounded-full animate-spin"></div>
@@ -21,8 +39,8 @@ export default function AdminPage() {
     );
   }
 
-  const isOwner = user && user.role === 'owner';
-  const isAllowed = isOwner; // por enquanto só owner; location_admin liberamos depois
+  const isOwner = !!access?.isOwner;
+  const isAllowed = !!access; // owner OU location_admin (o backend já validou)
 
   if (!isAllowed) {
     return (
@@ -48,14 +66,10 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-spotnicik-primary">SpotNICK</h1>
-            <span className="text-xs bg-spotnicik-dark text-white px-2 py-1 rounded">ADMIN</span>
+            <span className="text-xs bg-spotnicik-dark text-white px-2 py-1 rounded">
+              {isOwner ? 'ADMIN' : 'ADMIN DE LOCAL'}
+            </span>
           </div>
-      {isOwner && (
-        <div className="max-w-5xl mx-auto px-4 pt-4">
-          <SmsBalanceCard />
-        </div>
-      )}
-		  
           <button
             onClick={() => navigate('/dashboard')}
             className="text-sm text-spotnicik-cyan hover:underline"
@@ -65,19 +79,28 @@ export default function AdminPage() {
         </div>
       </header>
 
+      {/* Saldo SMS - visível apenas para o dono */}
+      {isOwner && (
+        <div className="max-w-7xl mx-auto px-4 pt-4">
+          <SmsBalanceCard />
+        </div>
+      )}
+
       {/* Abas do admin */}
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 flex gap-8">
-          <button
-            onClick={() => setTab('users')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'users'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Usuários
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => setTab('users')}
+              className={`py-4 px-2 font-medium transition ${
+                tab === 'users'
+                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
+              }`}
+            >
+              Usuários
+            </button>
+          )}
           <button
             onClick={() => setTab('locations')}
             className={`py-4 px-2 font-medium transition ${
@@ -88,7 +111,7 @@ export default function AdminPage() {
           >
             Locais
           </button>
-		  <button
+          <button
             onClick={() => setTab('routers')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'routers'
@@ -98,7 +121,7 @@ export default function AdminPage() {
           >
             Roteadores
           </button>
-		  <button
+          <button
             onClick={() => setTab('aps')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'aps'
@@ -108,7 +131,7 @@ export default function AdminPage() {
           >
             Access Points
           </button>
-		  <button
+          <button
             onClick={() => setTab('consumption')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'consumption'
@@ -122,10 +145,10 @@ export default function AdminPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {tab === 'users' && <AdminUsers />}
+        {tab === 'users' && isOwner && <AdminUsers />}
         {tab === 'locations' && <AdminLocations isOwner={isOwner} />}
         {tab === 'routers' && <AdminMikrotikRouters />}
-		{tab === 'aps' && <AdminAccessPoints />}
+        {tab === 'aps' && <AdminAccessPoints />}
         {tab === 'consumption' && <ConsumptionDashboard />}
       </main>
     </div>
