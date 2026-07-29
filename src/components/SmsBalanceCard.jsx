@@ -26,7 +26,7 @@ export default function SmsBalanceCard() {
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+    <div className="inline-flex items-center gap-4 bg-white rounded-lg shadow px-4 py-3">
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase">Saldo SMS</p>
         {loading ? (
@@ -35,12 +35,12 @@ export default function SmsBalanceCard() {
           <p className="text-sm text-red-600 mt-1">{error}</p>
         ) : (
           <>
-            <p className="text-2xl font-bold text-spotnicik-primary mt-1">
+            <p className="text-xl font-bold text-spotnicik-primary mt-0.5">
               {saldo != null ? saldo : '—'}
-              <span className="text-sm font-normal text-gray-400 ml-1">créditos</span>
+              <span className="text-xs font-normal text-gray-400 ml-1">créditos</span>
             </p>
             {expiraEm && (
-              <p className="text-xs text-gray-400 mt-0.5">Expira em {expiraEm}</p>
+              <p className="text-[11px] text-gray-400">Expira em {expiraEm}</p>
             )}
           </>
         )}
@@ -48,7 +48,7 @@ export default function SmsBalanceCard() {
       <button
         onClick={loadBalance}
         disabled={loading}
-        className="text-xs text-spotnicik-cyan hover:underline disabled:opacity-50"
+        className="text-xs text-spotnicik-cyan hover:underline disabled:opacity-50 whitespace-nowrap"
       >
         Atualizar
       </button>
