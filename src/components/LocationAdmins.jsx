@@ -26,7 +26,7 @@ export default function LocationAdmins({ locationId }) {
   }, [locationId]);
 
   const handleAdd = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) return;
 
@@ -108,22 +108,29 @@ export default function LocationAdmins({ locationId }) {
         <div className="bg-red-100 text-red-700 text-xs p-2 rounded-lg mb-2">{error}</div>
       )}
 
-      <form onSubmit={handleAdd} className="flex gap-2">
+      <div className="flex gap-2">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAdd(e);
+            }
+          }}
           placeholder="email@exemplo.com"
           className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={handleAdd}
           disabled={adding}
           className="text-sm px-4 py-2 bg-spotnicik-primary text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition whitespace-nowrap"
         >
           {adding ? '...' : '+ Adicionar'}
         </button>
-      </form>
+      </div>
       <p className="text-[11px] text-gray-400 mt-1">
         A pessoa precisa já ter uma conta no SpotNICK (cadastro normal) antes de ser adicionada aqui.
       </p>
