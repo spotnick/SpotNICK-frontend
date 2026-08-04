@@ -14,14 +14,13 @@ export default function Pagamentos() {
     hourly: { label: 'Por Hora', value: 1.00 },
     daily: { label: 'Por Dia', value: 5.00 },
     monthly: { label: 'Por Mês', value: 20.00 },
-    data: { label: 'Por GB', value: 0.50 },
   };
 
   const handleEstimate = async () => {
     try {
       const { data } = await api.post('/api/payments/estimate', {
         type,
-        hours: type === 'hourly' ? quantity : type === 'data' ? quantity : 1,
+        hours: type === 'hourly' ? quantity : 1,
         days: type === 'daily' ? quantity : 1,
         months: type === 'monthly' ? quantity : 1,
       });
@@ -37,7 +36,7 @@ export default function Pagamentos() {
       const { data } = await api.post('/api/payments/checkout', {
         type,
         billing_type: billingType,
-        hours: type === 'hourly' ? quantity : type === 'data' ? quantity : 1,
+        hours: type === 'hourly' ? quantity : 1,
         days: type === 'daily' ? quantity : 1,
         months: type === 'monthly' ? quantity : 1,
       });
@@ -63,7 +62,6 @@ export default function Pagamentos() {
           Valor: <strong>R$ {Number(success.value).toFixed(2)}</strong>
         </p>
 
-        {/* PIX */}
         {success.billing_type === 'PIX' && (
           <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
             {success.pix_qr_code && (
@@ -90,7 +88,6 @@ export default function Pagamentos() {
           </div>
         )}
 
-        {/* BOLETO */}
         {success.billing_type === 'BOLETO' && (
           <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
             {success.boleto_url && (
@@ -120,7 +117,6 @@ export default function Pagamentos() {
           </div>
         )}
 
-        {/* CARTÃO */}
         {success.billing_type === 'CREDIT_CARD' && success.invoice_url && (
           <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
             <a
@@ -148,7 +144,7 @@ export default function Pagamentos() {
     <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-spotnicik-primary mb-6">Planos de WiFi</h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {Object.entries(pricing).map(([key, { label, value }]) => (
           <button
             key={key}

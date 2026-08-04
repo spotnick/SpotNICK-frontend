@@ -12,7 +12,6 @@ const ROUTER_TYPE_LABEL = {
   ethernet_ap: '🔌 Ethernet → AP externo',
 };
 
-// Considera "online" se o heartbeat chegou nos últimos 10 minutos
 function getStatus(lastHeartbeatAt) {
   if (!lastHeartbeatAt) return 'never';
   const minutesSince = (Date.now() - new Date(lastHeartbeatAt).getTime()) / 60000;
@@ -30,6 +29,7 @@ export default function AdminMikrotikRouters() {
   const [saving, setSaving] = useState(false);
   const [scriptModal, setScriptModal] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [onlineCounts, setOnlineCounts] = useState({});
 
   useEffect(() => {
     (async () => {
@@ -38,6 +38,13 @@ export default function AdminMikrotikRouters() {
         setLocations(data.locations || []);
       } catch { /* ignora */ }
     })();
+  }, []);
+
+  const loadOnlineCounts = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/admin/mikrotik-routers/online-counts');
+      setOnlineCounts(data.counts || {});
+    } catch { /* silencioso — não é crítico */ }
   }, []);
 
   const loadRouters = useCallback(async (locId) => {
@@ -56,7 +63,14 @@ export default function AdminMikrotikRouters() {
 
   useEffect(() => {
     loadRouters(filterLocation);
-  }, [loadRouters, filterLocation]);
+    loadOnlineCounts();
+  }, [loadRouters, loadOnlineCounts, filterLocation]);
+
+  // Atualiza a contagem de online a cada 30s (sem recarregar a lista toda)
+  useEffect(() => {
+    const interval = setInterval(loadOnlineCounts, 30000);
+    return () => clearInterval(interval);
+  }, [loadOnlineCounts]);
 
   const openCreate = () => {
     setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
@@ -155,15 +169,21 @@ export default function AdminMikrotikRouters() {
           {routers.map((r) => {
             const status = getStatus(r.last_heartbeat_at);
             const st = STATUS_INFO[status];
+            const online = onlineCounts[r.id] || 0;
             return (
               <div key={r.id} className="bg-white rounded-lg shadow p-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-semibold text-spotnicik-dark">{r.name}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${st.classes}`}>{st.label}</span>
                       {!r.is_active && (
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Inativo</span>
+                      )}
+                      {status === 'online' && (
+                        <span className="text-xs bg-spotnicik-primary text-white px-2 py-0.5 rounded-full">
+                          👤 {online} online
+                        </span>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
@@ -194,7 +214,6 @@ export default function AdminMikrotikRouters() {
         </div>
       )}
 
-      {/* Formulário de cadastro */}
       {showForm && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50"
@@ -325,7 +344,6 @@ export default function AdminMikrotikRouters() {
         </div>
       )}
 
-      {/* Modal do script */}
       {scriptModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50 py-8"

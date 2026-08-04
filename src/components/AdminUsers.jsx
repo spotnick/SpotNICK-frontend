@@ -17,6 +17,12 @@ export default function AdminUsers() {
   const [offset, setOffset] = useState(0);
   const LIMIT = 20;
 
+  // Edição de dados
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', cpf: '' });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState(null);
+
   const loadUsers = useCallback(async (searchTerm, off) => {
     setLoading(true);
     setError(null);
@@ -67,6 +73,36 @@ export default function AdminUsers() {
       alert(err.response?.data?.error || 'Erro ao alterar papel.');
     } finally {
       setBusy(null);
+    }
+  };
+
+  const openEdit = (user) => {
+    setEditingUser(user);
+    setEditForm({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      cpf: user.cpf || '',
+    });
+    setEditError(null);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      await api.patch(`/api/admin/users/${editingUser.id}`, editForm);
+      setEditingUser(null);
+      await loadUsers(search, offset);
+    } catch (err) {
+      setEditError(err.response?.data?.error || 'Erro ao salvar dados.');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -151,7 +187,13 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(u.created_at)}</td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end flex-wrap">
+                          <button
+                            onClick={() => openEdit(u)}
+                            className="text-xs px-3 py-1.5 rounded-lg font-medium transition bg-white border border-spotnicik-primary text-spotnicik-primary hover:bg-spotnicik-light"
+                          >
+                            Editar
+                          </button>
                           {u.role === 'owner' ? (
                             <button
                               onClick={() => setRole(u, 'user')}
@@ -217,6 +259,74 @@ export default function AdminUsers() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Modal de edição */}
+      {editingUser && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50"
+          onClick={() => setEditingUser(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-spotnicik-primary mb-4">Editar Usuário</h3>
+
+            {editError && (
+              <div className="bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4">{editError}</div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-1">Nome</label>
+                <input
+                  type="text" name="name" value={editForm.name} onChange={handleEditChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-1">E-mail</label>
+                <input
+                  type="email" name="email" value={editForm.email} onChange={handleEditChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-1">Telefone</label>
+                <input
+                  type="text" name="phone" value={editForm.phone} onChange={handleEditChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-1">CPF</label>
+                <input
+                  type="text" name="cpf" value={editForm.cpf} onChange={handleEditChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-6">
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="flex-1 bg-gray-200 text-spotnicik-dark py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="flex-1 bg-spotnicik-primary text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+              >
+                {savingEdit ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
