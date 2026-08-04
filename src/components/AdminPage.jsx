@@ -8,6 +8,7 @@ import AdminAccessPoints from './AdminAccessPoints';
 import AdminMikrotikRouters from './AdminMikrotikRouters';
 import ConsumptionDashboard from './ConsumptionDashboard';
 import SmsBalanceCard from './SmsBalanceCard';
+import LogExtraction from './LogExtraction';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -141,6 +142,18 @@ export default function AdminPage() {
           >
             Consumo
           </button>
+		  {isOwner && (
+            <button
+              onClick={() => setTab('logs')}
+              className={`py-4 px-2 font-medium transition ${
+                tab === 'logs'
+                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
+              }`}
+            >
+              Registros
+            </button>
+          )}
         </div>
       </nav>
 
@@ -150,6 +163,7 @@ export default function AdminPage() {
         {tab === 'routers' && <AdminMikrotikRouters />}
         {tab === 'aps' && <AdminAccessPoints />}
         {tab === 'consumption' && <ConsumptionDashboard />}
+		{tab === 'logs' && isOwner && <LogExtraction />}
       </main>
     </div>
   );
