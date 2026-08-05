@@ -10,7 +10,7 @@ import SaldoCard from './SaldoCard';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('home');
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
@@ -152,7 +152,7 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'pagamentos' && <Pagamentos />}
-        {activeTab === 'perfil' && <Perfil user={user} />}
+		{activeTab === 'perfil' && <Perfil user={user} onUserRefresh={refreshUser} />}
         {activeTab === 'historico' && <Historico />}
         {activeTab === 'mapa' && <LocationsMap />}
       </main>

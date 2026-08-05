@@ -83,6 +83,7 @@ export function useAuth() {
     login,
     register,
     logout,
+    refreshUser: fetchUser,
     isAuthenticated: !!user,
   };
 }

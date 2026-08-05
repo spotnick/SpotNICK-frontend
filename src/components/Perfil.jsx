@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from '../services/api';
 import PasswordInput from './PasswordInput';
 
-export default function Perfil({ user }) {
+export default function Perfil({ user, onUserRefresh }) {
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -46,12 +46,13 @@ export default function Perfil({ user }) {
     }
   };
 
-  const handleToggleMarketing = async (e) => {
-    const novoValor = e.target.checked;
+  const handleToggleMarketing = async () => {
+    const novoValor = !marketingConsent;
     setSavingConsent(true);
     try {
       await api.patch('/api/auth/marketing-consent', { marketing_consent: novoValor });
       setMarketingConsent(novoValor);
+      if (onUserRefresh) await onUserRefresh(); // mantém o "user" global em sincronia
     } catch (err) {
       alert(err.response?.data?.error || 'Erro ao atualizar preferência.');
     } finally {
