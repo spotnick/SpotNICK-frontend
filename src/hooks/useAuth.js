@@ -42,7 +42,7 @@ export function useAuth() {
     }
   };
 
-  const register = async (name, email, phone, cpf, password, verification_method) => {
+  const register = async (name, email, phone, cpf, password, verification_method, termsAccepted, marketingConsent) => {
     try {
       setError(null);
       const { data } = await api.post('/api/auth/register', {
@@ -52,6 +52,8 @@ export function useAuth() {
         cpf,
         password,
         verification_method,
+        terms_accepted: termsAccepted,
+        marketing_consent: marketingConsent,
       });
       return { success: true, data };
     } catch (err) {

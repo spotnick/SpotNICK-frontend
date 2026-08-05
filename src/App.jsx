@@ -12,7 +12,7 @@ import PortalWifi from './components/PortalWifi';
 import VerifySmsCode from './components/VerifySmsCode';
 import LocationsMap from './components/LocationsMap';
 import StatusWifi from './components/StatusWifi';
-
+import Termos from './components/Termos';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -45,6 +45,7 @@ export default function App() {
 		<Route path="/verify-sms" element={<VerifySmsCode />} />
         <Route path="/mapa" element={<LocationsMap />} />
         <Route path="/status" element={<StatusWifi />} />
+		<Route path="/termos" element={<Termos />} />
         <Route
           path="/admin"
           element={

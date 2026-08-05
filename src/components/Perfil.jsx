@@ -10,6 +10,8 @@ export default function Perfil({ user }) {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [marketingConsent, setMarketingConsent] = useState(!!user?.marketing_consent);
+  const [savingConsent, setSavingConsent] = useState(false);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +43,19 @@ export default function Perfil({ user }) {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleMarketing = async () => {
+    const novoValor = !marketingConsent;
+    setSavingConsent(true);
+    try {
+      await api.patch('/api/auth/marketing-consent', { marketing_consent: novoValor });
+      setMarketingConsent(novoValor);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao atualizar preferência.');
+    } finally {
+      setSavingConsent(false);
     }
   };
 
@@ -108,6 +123,40 @@ export default function Perfil({ user }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Preferências de Comunicação (LGPD) */}
+      <div className="bg-white rounded-lg shadow-lg p-8 md:col-span-2">
+        <h2 className="text-2xl font-bold text-spotnicik-primary mb-4">Preferências de Comunicação</h2>
+        <div className="flex items-start justify-between gap-4 p-4 bg-spotnicik-light rounded-lg">
+          <div>
+            <p className="text-sm font-medium text-spotnicik-dark">
+              Receber novidades e promoções por e-mail/SMS
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Você pode ativar ou desativar isso a qualquer momento. Não afeta o uso normal do Wi-Fi.
+            </p>
+          </div>
+          <button
+            onClick={handleToggleMarketing}
+            disabled={savingConsent}
+            className={`shrink-0 relative w-12 h-6 rounded-full transition ${
+              marketingConsent ? 'bg-spotnicik-primary' : 'bg-gray-300'
+            } disabled:opacity-50`}
+          >
+            <span
+              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                marketingConsent ? 'translate-x-6' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-3">
+          Veja mais em nossos{' '}
+          <a href="/termos" target="_blank" className="text-spotnicik-cyan hover:underline">
+            Termos de Uso e Política de Privacidade
+          </a>.
+        </p>
       </div>
 
       {/* Reset de Senha */}

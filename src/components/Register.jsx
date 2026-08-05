@@ -18,6 +18,8 @@ export default function Register() {
   });
   const [verificationMethod, setVerificationMethod] = useState('email');
   const [cpfError, setCpfError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +78,11 @@ export default function Register() {
       return;
     }
 
+    if (!termsAccepted) {
+      alert('É necessário aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.');
+      return;
+    }
+
     setLoading(true);
     const result = await register(
       form.name,
@@ -83,7 +90,9 @@ export default function Register() {
       form.phone,
       form.cpf.replace(/\D/g, ''),
       form.password,
-      verificationMethod
+      verificationMethod,
+      termsAccepted,
+      marketingConsent
     );
     setLoading(false);
 
@@ -252,6 +261,39 @@ export default function Register() {
                 Enviaremos um código de 6 dígitos por SMS para o telefone informado.
               </p>
             )}
+          </div>
+
+          <div className="border-t pt-4 space-y-3">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="w-4 h-4 mt-0.5"
+                required
+              />
+              <span className="text-sm text-spotnicik-dark">
+                Li e aceito os{' '}
+                <Link to="/termos" target="_blank" className="text-spotnicik-cyan hover:underline">
+                  Termos de Uso e a Política de Privacidade
+                </Link>
+                . <span className="text-red-500">*</span>
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={marketingConsent}
+                onChange={(e) => setMarketingConsent(e.target.checked)}
+                className="w-4 h-4 mt-0.5"
+              />
+              <span className="text-sm text-gray-600">
+                Quero receber novidades, promoções e comunicações do SpotNICK por e-mail e/ou SMS.
+                Você pode alterar isso a qualquer momento no seu perfil.{' '}
+                <span className="text-gray-400">(opcional)</span>
+              </span>
+            </label>
           </div>
 
           <button
