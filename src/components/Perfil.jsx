@@ -46,8 +46,8 @@ export default function Perfil({ user }) {
     }
   };
 
-  const handleToggleMarketing = async () => {
-    const novoValor = !marketingConsent;
+  const handleToggleMarketing = async (e) => {
+    const novoValor = e.target.checked;
     setSavingConsent(true);
     try {
       await api.patch('/api/auth/marketing-consent', { marketing_consent: novoValor });
@@ -145,8 +145,8 @@ export default function Perfil({ user }) {
             } disabled:opacity-50`}
           >
             <span
-              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                marketingConsent ? 'translate-x-6' : 'translate-x-0.5'
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                marketingConsent ? 'translate-x-6' : 'translate-x-0'
               }`}
             />
           </button>
