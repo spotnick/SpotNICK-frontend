@@ -30,6 +30,8 @@ export default function AdminMikrotikRouters() {
   const [scriptModal, setScriptModal] = useState(null);
   const [copied, setCopied] = useState(false);
   const [onlineCounts, setOnlineCounts] = useState({});
+  const [editingPortId, setEditingPortId] = useState(null);
+  const [portValue, setPortValue] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -126,6 +128,23 @@ export default function AdminMikrotikRouters() {
     }
   };
 
+  const startEditPort = (routerItem) => {
+    setEditingPortId(routerItem.id);
+    setPortValue(routerItem.winbox_port ? String(routerItem.winbox_port) : '');
+  };
+
+  const savePort = async (routerId) => {
+    try {
+      const { data } = await api.patch(`/api/admin/mikrotik-routers/${routerId}/winbox-port`, {
+        winbox_port: portValue.trim() === '' ? null : Number(portValue),
+      });
+      setRouters((prev) => prev.map((r) => (r.id === routerId ? { ...r, winbox_port: data.winbox_port } : r)));
+      setEditingPortId(null);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao salvar porta.');
+    }
+  };
+
   const formatDate = (d) =>
     d ? new Date(d).toLocaleString('pt-BR') : '-';
 
@@ -196,7 +215,48 @@ export default function AdminMikrotikRouters() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                       {r.locations?.name && <span>📍 {r.locations.name}</span>}
                       <span>{ROUTER_TYPE_LABEL[r.router_type] || ROUTER_TYPE_LABEL.wifi_direct}</span>
-                      {r.current_ip && <span>IP: {r.current_ip}</span>}
+                      {r.current_ip && (
+                        <span className="flex items-center gap-1">
+                          IP: {r.current_ip}
+                          {editingPortId === r.id ? (
+                            <>
+                              <span>:</span>
+                              <input
+                                type="number"
+                                autoFocus
+                                value={portValue}
+                                onChange={(e) => setPortValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && savePort(r.id)}
+                                placeholder="porta"
+                                className="w-16 px-1 py-0.5 text-xs border border-spotnicik-primary rounded"
+                              />
+                              <button
+                                onClick={() => savePort(r.id)}
+                                className="text-spotnicik-primary font-medium hover:underline"
+                              >
+                                salvar
+                              </button>
+                              <button
+                                onClick={() => setEditingPortId(null)}
+                                className="text-gray-400 hover:underline"
+                              >
+                                cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {r.winbox_port ? <span>:{r.winbox_port}</span> : null}
+                              <button
+                                onClick={() => startEditPort(r)}
+                                className="text-spotnicik-cyan hover:underline ml-1"
+                                title="Definir porta de acesso Winbox (redirecionamento NAT)"
+                              >
+                                {r.winbox_port ? 'editar' : '+ porta Winbox'}
+                              </button>
+                            </>
+                          )}
+                        </span>
+                      )}
                       <span>Último sinal: {formatDate(r.last_heartbeat_at)}</span>
                     </div>
                   </div>
