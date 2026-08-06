@@ -176,6 +176,13 @@ export default function AdminMikrotikRouters() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-semibold text-spotnicik-dark">{r.name}</span>
+                      <span
+                        className="text-[11px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded cursor-pointer hover:bg-gray-200 transition"
+                        title="Identidade deste equipamento no Mikrotik (confira com /system identity print) — clique para copiar"
+                        onClick={() => navigator.clipboard.writeText(`router-${String(r.id).slice(0, 8)}`)}
+                      >
+                        router-{String(r.id).slice(0, 8)}
+                      </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${st.classes}`}>{st.label}</span>
                       {!r.is_active && (
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Inativo</span>
