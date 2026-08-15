@@ -154,7 +154,8 @@ export default function AdminPage() {
             >
               Registros
             </button>
-			<button
+          )}
+          <button
             onClick={() => setTab('campanhas')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'campanhas'
@@ -164,7 +165,6 @@ export default function AdminPage() {
           >
             Campanhas
           </button>
-          )}
         </div>
       </nav>
 
