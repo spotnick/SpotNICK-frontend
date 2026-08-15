@@ -68,11 +68,18 @@ export default function AdminMikrotikRouters() {
     loadOnlineCounts();
   }, [loadRouters, loadOnlineCounts, filterLocation]);
 
-  // Atualiza a contagem de online a cada 30s (sem recarregar a lista toda)
+  // Atualiza a lista de roteadores E a contagem de online a cada 30s.
+  // Sem isso, o "last_heartbeat_at" fica congelado do carregamento
+  // inicial, e o calculo de Online/Offline (que compara com a hora
+  // atual, sempre avancando) acaba mostrando todo mundo como offline
+  // depois de um tempo, mesmo com sinal chegando normalmente.
   useEffect(() => {
-    const interval = setInterval(loadOnlineCounts, 30000);
+    const interval = setInterval(() => {
+      loadRouters(filterLocation);
+      loadOnlineCounts();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [loadOnlineCounts]);
+  }, [loadRouters, loadOnlineCounts, filterLocation]);
 
   const openCreate = () => {
     setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
