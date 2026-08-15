@@ -10,6 +10,7 @@ import ConsumptionDashboard from './ConsumptionDashboard';
 import SmsBalanceCard from './SmsBalanceCard';
 import LogExtraction from './LogExtraction';
 import Campanhas from './Campanhas';
+import SystemStatsCard from './SystemStatsCard';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -83,7 +84,8 @@ export default function AdminPage() {
 
       {/* Saldo SMS - visível apenas para o dono */}
       {isOwner && (
-        <div className="max-w-7xl mx-auto px-4 pt-4">
+        <div className="max-w-7xl mx-auto px-4 pt-4 flex flex-wrap gap-3">
+          <SystemStatsCard />
           <SmsBalanceCard />
         </div>
       )}
