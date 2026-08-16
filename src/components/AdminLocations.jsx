@@ -41,6 +41,10 @@ export default function AdminLocations({ isOwner }) {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [bannerError, setBannerError] = useState(null);
 
+  // Acesso à função de Campanhas (só o dono controla)
+  const [campaignsEnabled, setCampaignsEnabled] = useState(false);
+  const [savingCampaignsAccess, setSavingCampaignsAccess] = useState(false);
+
   const loadLocations = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -84,6 +88,7 @@ export default function AdminLocations({ isOwner }) {
     setBannerUrl(loc.ad_config?.banner_url || null);
     setAdLink(loc.ad_config?.link_url || '');
     setBannerError(null);
+    setCampaignsEnabled(!!loc.campaigns_enabled);
     setShowForm(true);
   };
 
@@ -192,6 +197,19 @@ export default function AdminLocations({ isOwner }) {
       await loadLocations();
     } catch (err) {
       alert(err.response?.data?.error || 'Erro ao alterar status.');
+    }
+  };
+
+  const handleToggleCampaigns = async () => {
+    const novoValor = !campaignsEnabled;
+    setSavingCampaignsAccess(true);
+    try {
+      await api.patch(`/api/admin/locations/${editing.id}/campaigns-access`, { enabled: novoValor });
+      setCampaignsEnabled(novoValor);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao atualizar acesso.');
+    } finally {
+      setSavingCampaignsAccess(false);
     }
   };
 
@@ -492,6 +510,35 @@ export default function AdminLocations({ isOwner }) {
               {editing && isOwner && (
                 <div className="border-t pt-4">
                   <LocationAdmins locationId={editing.id} />
+                </div>
+              )}
+
+              {/* Acesso à função de Campanhas — apenas o dono controla */}
+              {editing && isOwner && (
+                <div className="border-t pt-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-spotnicik-dark">Função de Campanhas</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Permite que o admin deste local envie campanhas de e-mail/SMS (créditos comprados
+                        separadamente por ele, sem custo pra você).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleCampaigns}
+                      disabled={savingCampaignsAccess}
+                      className={`shrink-0 relative w-12 h-6 rounded-full transition ${
+                        campaignsEnabled ? 'bg-spotnicik-primary' : 'bg-gray-300'
+                      } disabled:opacity-50`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                          campaignsEnabled ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               )}
               {form.show_ads && !editing && (
