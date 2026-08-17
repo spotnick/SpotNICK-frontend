@@ -62,6 +62,18 @@ export default function AdminUsers() {
     }
   };
 
+  const resendVerification = async (user) => {
+    setBusy(user.id);
+    try {
+      await api.post(`/api/admin/users/${user.id}/resend-verification`);
+      alert('Verificação reenviada com sucesso.');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao reenviar verificação.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const setRole = async (user, newRole) => {
     const acao = newRole === 'owner' ? 'promover a DONO' : 'remover de DONO';
     if (!window.confirm(`Tem certeza que deseja ${acao} o usuário "${user.name}"?`)) return;
@@ -194,6 +206,16 @@ export default function AdminUsers() {
                           >
                             Editar
                           </button>
+                          {!u.email_verified && (
+                            <button
+                              onClick={() => resendVerification(u)}
+                              disabled={busy === u.id}
+                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-white border border-yellow-500 text-yellow-700 hover:bg-yellow-50"
+                              title="Reenvia pelo método de verificação escolhido no cadastro"
+                            >
+                              {busy === u.id ? '...' : 'Reenviar verificação'}
+                            </button>
+                          )}
                           {u.role === 'owner' ? (
                             <button
                               onClick={() => setRole(u, 'user')}
