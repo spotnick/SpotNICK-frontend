@@ -16,7 +16,7 @@ export default function Register() {
     password: '',
     confirmPassword: '',
   });
-  const [verificationMethod, setVerificationMethod] = useState('email');
+  const [verificationMethod, setVerificationMethod] = useState('sms');
   const [cpfError, setCpfError] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
