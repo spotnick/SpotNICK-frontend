@@ -172,6 +172,25 @@ export default function Infraestrutura() {
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">Railway (deploy/uso)<br />— em breve —</p>
           </div>
+          {/* Railway */}
+          <ServiceCard title="Railway (Backend)" status={data.railway?.status}>
+            {data.railway?.status === 'ok' ? (
+              <>
+                <p className="text-sm text-spotnicik-dark">
+                  <strong>{data.railway.serviceName}</strong>{' '}
+                  <span className={data.railway.deployStatus === 'SUCCESS' ? 'text-green-600' : 'text-yellow-600'}>
+                    ({data.railway.deployStatus})
+                  </span>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {new Date(data.railway.deployedAt).toLocaleString('pt-BR')}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-red-600">{data.railway?.error}</p>
+            )}
+          </ServiceCard>
+
           {/* GitHub */}
           <div className="bg-white rounded-lg shadow p-5 md:col-span-2">
             <div className="flex items-center justify-between mb-3">
