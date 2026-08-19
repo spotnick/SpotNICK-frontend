@@ -97,12 +97,91 @@ export default function Infraestrutura() {
             )}
           </ServiceCard>
 
+          {/* Resend */}
+          <ServiceCard title="Resend (E-mail)" status={data.resend?.status}>
+            {data.resend?.status === 'ok' ? (
+              <>
+                <p className="text-sm text-spotnicik-dark">Domínio: <strong>{data.resend.dominio}</strong></p>
+                <p className="text-xs mt-1">
+                  {data.resend.verificado ? (
+                    <span className="text-green-600">✓ Verificado</span>
+                  ) : (
+                    <span className="text-red-600">✗ Não verificado</span>
+                  )}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-red-600">{data.resend?.error}</p>
+            )}
+          </ServiceCard>
+
+          {/* Asaas */}
+          <ServiceCard title="Asaas (Pagamentos)" status={data.asaas?.status}>
+            {data.asaas?.status === 'ok' ? (
+              <p className="text-2xl font-bold text-spotnicik-dark">
+                R$ {Number(data.asaas.saldo || 0).toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-sm text-red-600">{data.asaas?.error}</p>
+            )}
+          </ServiceCard>
+
+          {/* NextDNS */}
+          <ServiceCard title="NextDNS (Filtro de Conteúdo)" status={data.nextdns?.status}>
+            {data.nextdns?.status === 'ok' ? (
+              <>
+                <p className="text-sm text-spotnicik-dark">{data.nextdns.perfis} local(is) com filtro ativo</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {data.nextdns.consultas.toLocaleString('pt-BR')} consultas, {data.nextdns.bloqueadas.toLocaleString('pt-BR')} bloqueadas
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-red-600">{data.nextdns?.error}</p>
+            )}
+          </ServiceCard>
+
+          {/* Crons */}
+          <div className="bg-white rounded-lg shadow p-5 md:col-span-2">
+            <h3 className="font-semibold text-spotnicik-dark mb-3">Rotinas Agendadas (Crons)</h3>
+            {(!data.crons || data.crons.length === 0) ? (
+              <p className="text-sm text-gray-400">Nenhum registro ainda — aguarde a próxima execução de cada rotina.</p>
+            ) : (
+              <div className="space-y-2">
+                {data.crons.map((c) => {
+                  const minutesSince = (Date.now() - new Date(c.last_run_at).getTime()) / 60000;
+                  const isStale = minutesSince > 180; // mais de 3h sem rodar
+                  return (
+                    <div key={c.job_name} className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
+                      <span className="text-spotnicik-dark font-mono text-xs">{c.job_name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          c.last_status === 'success' && !isStale ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {isStale ? 'atrasado' : c.last_status === 'success' ? 'ok' : 'erro'}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(c.last_run_at).toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Placeholders da Fase 2 */}
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">Railway (deploy/uso)<br />— em breve —</p>
           </div>
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">GitHub (commits/CI)<br />— em breve —</p>
+          </div>
+          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
+            <p className="text-sm text-gray-400 text-center">Vercel (deploy do frontend)<br />— em breve —</p>
+          </div>
+          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
+            <p className="text-sm text-gray-400 text-center">DigitalOcean (VPS FreeRADIUS)<br />— em breve —</p>
           </div>
         </div>
       )}
