@@ -172,9 +172,40 @@ export default function Infraestrutura() {
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">Railway (deploy/uso)<br />— em breve —</p>
           </div>
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
-            <p className="text-sm text-gray-400 text-center">GitHub (commits/CI)<br />— em breve —</p>
+          {/* GitHub */}
+          <div className="bg-white rounded-lg shadow p-5 md:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-spotnicik-dark">GitHub (Repositórios)</h3>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                data.github?.status === 'ok' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {data.github?.status === 'ok' ? 'Operacional' : 'Erro'}
+              </span>
+            </div>
+            {data.github?.status === 'ok' ? (
+              <div className="space-y-3">
+                {data.github.repos.map((r) => (
+                  <a
+                    key={r.name}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block border-l-2 border-spotnicik-cyan pl-3 hover:bg-spotnicik-light rounded-r transition"
+                  >
+                    <p className="text-xs font-semibold text-spotnicik-dark">{r.name}</p>
+                    <p className="text-sm text-gray-700 truncate">{r.message}</p>
+                    <p className="text-xs text-gray-400">
+                      {r.author} · {new Date(r.date).toLocaleString('pt-BR')}
+                    </p>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-red-600">{data.github?.error}</p>
+            )}
           </div>
+
+          {/* Placeholders da Fase 2 restantes */}
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">Vercel (deploy do frontend)<br />— em breve —</p>
           </div>
