@@ -206,9 +206,33 @@ export default function Infraestrutura() {
           </div>
 
           {/* Placeholders da Fase 2 restantes */}
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
-            <p className="text-sm text-gray-400 text-center">Vercel (deploy do frontend)<br />— em breve —</p>
+          {/* Vercel */}
+          <div className="bg-white rounded-lg shadow p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-spotnicik-dark">Vercel (Frontend)</h3>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                data.vercel?.status === 'ok' && data.vercel?.readyState === 'READY'
+                  ? 'bg-green-100 text-green-700'
+                  : data.vercel?.status === 'ok'
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-red-100 text-red-700'
+              }`}>
+                {data.vercel?.status === 'ok' ? data.vercel.readyState : 'Erro'}
+              </span>
+            </div>
+            {data.vercel?.status === 'ok' ? (
+              <a href={data.vercel.url} target="_blank" rel="noopener noreferrer" className="block hover:bg-spotnicik-light rounded p-1 -m-1 transition">
+                <p className="text-sm text-gray-700 truncate">{data.vercel.message || 'Sem mensagem de commit'}</p>
+                <p className="text-xs text-gray-400">
+                  {data.vercel.author} · {new Date(data.vercel.createdAt).toLocaleString('pt-BR')}
+                </p>
+              </a>
+            ) : (
+              <p className="text-sm text-red-600">{data.vercel?.error}</p>
+            )}
           </div>
+
+          {/* Placeholder restante */}
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
             <p className="text-sm text-gray-400 text-center">DigitalOcean (VPS FreeRADIUS)<br />— em breve —</p>
           </div>
