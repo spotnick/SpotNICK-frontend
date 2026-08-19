@@ -11,6 +11,7 @@ import SmsBalanceCard from './SmsBalanceCard';
 import LogExtraction from './LogExtraction';
 import Campanhas from './Campanhas';
 import SystemStatsCard from './SystemStatsCard';
+import Infraestrutura from './Infraestrutura';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -167,6 +168,18 @@ export default function AdminPage() {
           >
             Campanhas
           </button>
+		  {isOwner && (
+            <button
+              onClick={() => setTab('infra')}
+              className={`py-4 px-2 font-medium transition ${
+                tab === 'infra'
+                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
+              }`}
+            >
+              Infraestrutura
+            </button>
+          )}
         </div>
       </nav>
 
@@ -178,6 +191,7 @@ export default function AdminPage() {
         {tab === 'consumption' && <ConsumptionDashboard />}
 		{tab === 'logs' && isOwner && <LogExtraction />}
 		{tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
+        {tab === 'infra' && isOwner && <Infraestrutura />}
       </main>
     </div>
   );
