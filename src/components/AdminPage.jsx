@@ -28,7 +28,7 @@ export default function AdminPage() {
         const { data } = await api.get('/api/admin/my-access');
         setAccess(data);
       } catch {
-        setAccess(false); // sem acesso admin (backend já barrou)
+        setAccess(false); // sem acesso admin  (backend já barrou)
       } finally {
         setAccessLoading(false);
       }
