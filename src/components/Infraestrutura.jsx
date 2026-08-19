@@ -233,9 +233,25 @@ export default function Infraestrutura() {
           </div>
 
           {/* Placeholder restante */}
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-5 flex items-center justify-center">
-            <p className="text-sm text-gray-400 text-center">DigitalOcean (VPS FreeRADIUS)<br />— em breve —</p>
-          </div>
+          {/* DigitalOcean */}
+          <ServiceCard title="DigitalOcean (VPS FreeRADIUS)" status={data.digitalocean?.status}>
+            {data.digitalocean?.status === 'ok' ? (
+              <>
+                <p className="text-sm text-spotnicik-dark">
+                  <strong>{data.digitalocean.name}</strong>{' '}
+                  <span className={data.digitalocean.droplet_status === 'active' ? 'text-green-600' : 'text-red-600'}>
+                    ({data.digitalocean.droplet_status})
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {data.digitalocean.vcpus} vCPU · {data.digitalocean.memory_mb}MB RAM · {data.digitalocean.disk_gb}GB disco
+                </p>
+                <p className="text-xs text-gray-400">{data.digitalocean.region}</p>
+              </>
+            ) : (
+              <p className="text-sm text-red-600">{data.digitalocean?.error}</p>
+            )}
+          </ServiceCard>
         </div>
       )}
     </div>
