@@ -118,9 +118,7 @@ export default function Infraestrutura() {
           {/* Asaas */}
           <ServiceCard title="Asaas (Pagamentos)" status={data.asaas?.status}>
             {data.asaas?.status === 'ok' ? (
-              <p className="text-2xl font-bold text-spotnicik-dark">
-                R$ {Number(data.asaas.saldo || 0).toFixed(2)}
-              </p>
+              <p className="text-sm text-green-600">✓ Integração conectada normalmente</p>
             ) : (
               <p className="text-sm text-red-600">{data.asaas?.error}</p>
             )}
