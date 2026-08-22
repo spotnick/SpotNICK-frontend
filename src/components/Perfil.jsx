@@ -171,7 +171,6 @@ export default function Perfil({ user, onUserRefresh }) {
               required
             />
           </div>
-		 </div> 
 
           <button
             type="submit"
@@ -221,6 +220,7 @@ export default function Perfil({ user, onUserRefresh }) {
           </a>.
         </p>
       </div>
+     </div>
     </div>
   );
 }
