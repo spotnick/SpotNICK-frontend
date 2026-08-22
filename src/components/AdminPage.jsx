@@ -13,6 +13,7 @@ import Campanhas from './Campanhas';
 import SystemStatsCard from './SystemStatsCard';
 import Infraestrutura from './Infraestrutura';
 import AdminCompanies from './AdminCompanies';
+import AdminProducts from './AdminProducts';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -118,6 +119,16 @@ export default function AdminPage() {
             Empresas
           </button>
 		  <button
+            onClick={() => setTab('products')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'products'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Produtos
+          </button>
+		  <button
             onClick={() => setTab('locations')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'locations'
@@ -204,6 +215,7 @@ export default function AdminPage() {
 		{tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
         {tab === 'infra' && isOwner && <Infraestrutura />}
 		{tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
+        {tab === 'products' && <AdminProducts isPlatformAdmin={isOwner} />}
       </main>
     </div>
   );
