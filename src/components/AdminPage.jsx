@@ -12,6 +12,7 @@ import LogExtraction from './LogExtraction';
 import Campanhas from './Campanhas';
 import SystemStatsCard from './SystemStatsCard';
 import Infraestrutura from './Infraestrutura';
+import AdminCompanies from './AdminCompanies';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -28,7 +29,7 @@ export default function AdminPage() {
         const { data } = await api.get('/api/admin/my-access');
         setAccess(data);
       } catch {
-        setAccess(false); // sem acesso admin  (backend já barrou)
+        setAccess(false); // sem acesso admin (backend já barrou)
       } finally {
         setAccessLoading(false);
       }
@@ -107,6 +108,16 @@ export default function AdminPage() {
             </button>
           )}
           <button
+            onClick={() => setTab('companies')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'companies'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Empresas
+          </button>
+		  <button
             onClick={() => setTab('locations')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'locations'
@@ -192,6 +203,7 @@ export default function AdminPage() {
 		{tab === 'logs' && isOwner && <LogExtraction />}
 		{tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
         {tab === 'infra' && isOwner && <Infraestrutura />}
+		{tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
       </main>
     </div>
   );
