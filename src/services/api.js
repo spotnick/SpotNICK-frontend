@@ -18,21 +18,35 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Rotas de AUTENTICAÇÃO: um 401 aqui significa "credenciais inválidas",
+// não "sessão expirada". Elas tratam o próprio erro e mostram a mensagem
+// na tela — o interceptador não deve tentar renovar token nem redirecionar,
+// senão o recarregamento apaga a mensagem antes da pessoa conseguir ler.
+const AUTH_ROUTES = [
+  '/api/portal/login',
+  '/api/auth/login',
+  '/api/auth/admin-login',
+  '/api/auth/register',
+  '/api/auth/refresh',
+  '/api/auth/verify-email',
+  '/api/auth/verify-sms',
+  '/api/auth/request-password-reset',
+  '/api/auth/reset-password',
+];
+
 // Interceptor para tratar erros
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Rotas públicas que tratam seus próprios erros 401
-    // (não devem disparar refresh de token nem redirect para /login)
-    const publicRoutes = ['/api/portal/login'];
-    const isPublicRoute = publicRoutes.some((route) =>
-      error.config?.url?.includes(route)
-    );
+    const url = error.config?.url || '';
+    const isAuthRoute = AUTH_ROUTES.some((route) => url.includes(route));
 
-    if (error.response?.status === 401 && !isPublicRoute) {
-      // Token expirado, tentar refresh
+    if (error.response?.status === 401 && !isAuthRoute) {
+      // Sessão expirada durante o uso — tenta renovar
       try {
         const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) throw new Error('sem refresh token');
+
         const { data } = await axios.post(`${API_URL}/api/auth/refresh`, {
           refreshToken,
         });
@@ -41,7 +55,10 @@ api.interceptors.response.use(
       } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+
+        // Manda cada perfil para a sua própria tela de entrada
+        const isAdminArea = window.location.pathname.startsWith('/admin');
+        window.location.href = isAdminArea ? '/admin/login' : '/login';
       }
     }
     return Promise.reject(error);
