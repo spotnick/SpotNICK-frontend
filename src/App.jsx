@@ -13,6 +13,7 @@ import VerifySmsCode from './components/VerifySmsCode';
 import LocationsMap from './components/LocationsMap';
 import StatusWifi from './components/StatusWifi';
 import Termos from './components/Termos';
+import AdminLogin from './components/AdminLogin';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -36,7 +37,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+		<Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
