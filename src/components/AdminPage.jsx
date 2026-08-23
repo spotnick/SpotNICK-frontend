@@ -16,6 +16,7 @@ import AdminCompanies from './AdminCompanies';
 import AdminProducts from './AdminProducts';
 import AdminContracts from './AdminContracts';
 import AdminEquipment from './AdminEquipment';
+import AdminAdmins from './AdminAdmins';
 
 // Menus temáticos. `ownerOnly` no item = só o dono vê;
 // um menu some sozinho quando nenhum item dele está disponível.
@@ -44,6 +45,7 @@ const MENUS = [
     label: 'Pessoas',
     items: [
       { tab: 'users',     label: 'Usuários', ownerOnly: true },
+      { tab: 'admins',    label: 'Administradores' },
       { tab: 'campanhas', label: 'Campanhas' },
     ],
   },
@@ -237,6 +239,9 @@ export default function AdminPage() {
         {tab === 'products' && <AdminProducts isPlatformAdmin={isOwner} />}
         {tab === 'contracts' && <AdminContracts isPlatformAdmin={isOwner} />}
         {tab === 'equipment' && <AdminEquipment isPlatformAdmin={isOwner} />}
+		{tab === 'admins' && (
+          <AdminAdmins isPlatformAdmin={isOwner} currentAdminId={user?.id} />
+        )}
       </main>
     </div>
   );
