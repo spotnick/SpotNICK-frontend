@@ -14,6 +14,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [offset, setOffset] = useState(0);
   const LIMIT = 20;
 
@@ -42,6 +43,14 @@ export default function AdminUsers() {
   useEffect(() => {
     loadUsers('', 0);
   }, [loadUsers]);
+
+  // Fecha o menu de ações ao clicar em qualquer outro lugar
+  useEffect(() => {
+    if (!openMenuId) return;
+    const close = () => setOpenMenuId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openMenuId]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -199,57 +208,83 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(u.created_at)}</td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex gap-2 justify-end flex-wrap">
-                          <button
-                            onClick={() => openEdit(u)}
-                            className="text-xs px-3 py-1.5 rounded-lg font-medium transition bg-white border border-spotnicik-primary text-spotnicik-primary hover:bg-spotnicik-light"
-                          >
-                            Editar
-                          </button>
-                          {!u.email_verified && (
+                        <div className="flex gap-2 justify-end items-center">
+                          {/* Ação principal: quem não verificou precisa disso primeiro */}
+                          {!u.email_verified ? (
                             <button
                               onClick={() => resendVerification(u)}
                               disabled={busy === u.id}
-                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-white border border-yellow-500 text-yellow-700 hover:bg-yellow-50"
-                              title="Reenvia pelo método de verificação escolhido no cadastro"
+                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-yellow-500 text-white hover:bg-yellow-600"
+                              title="Reenvia a verificação (prioriza SMS quando há telefone)"
                             >
                               {busy === u.id ? '...' : 'Reenviar verificação'}
                             </button>
-                          )}
-                          {u.role === 'owner' ? (
-                            <button
-                              onClick={() => setRole(u, 'user')}
-                              disabled={busy === u.id}
-                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-white border border-gray-400 text-gray-600 hover:bg-gray-50"
-                            >
-                              {busy === u.id ? '...' : 'Remover Dono'}
-                            </button>
                           ) : (
-                            <>
-                              <button
-                                onClick={() => setRole(u, 'owner')}
-                                disabled={busy === u.id}
-                                className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-spotnicik-primary text-white hover:bg-blue-700"
-                              >
-                                {busy === u.id ? '...' : 'Tornar Dono'}
-                              </button>
-                              <button
-                                onClick={() => toggleBlock(u)}
-                                disabled={busy === u.id}
-                                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 ${
-                                  u.is_blocked
-                                    ? 'bg-green-600 text-white hover:bg-green-700'
-                                    : 'bg-white border border-red-400 text-red-600 hover:bg-red-50'
-                                }`}
-                              >
-                                {busy === u.id
-                                  ? '...'
-                                  : u.is_blocked
-                                  ? 'Desbloquear'
-                                  : 'Bloquear'}
-                              </button>
-                            </>
+                            <button
+                              onClick={() => openEdit(u)}
+                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition bg-white border border-spotnicik-primary text-spotnicik-primary hover:bg-spotnicik-light"
+                            >
+                              Editar
+                            </button>
                           )}
+
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === u.id ? null : u.id);
+                              }}
+                              className="text-xs px-2.5 py-1.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                              title="Mais ações"
+                            >
+                              &#8942;
+                            </button>
+
+                            {openMenuId === u.id && (
+                              <div
+                                className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[180px] text-left"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {!u.email_verified && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); openEdit(u); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                                  >
+                                    Editar dados
+                                  </button>
+                                )}
+
+                                {u.role === 'owner' ? (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); setRole(u, 'user'); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                                  >
+                                    Remover Dono
+                                  </button>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => { setOpenMenuId(null); setRole(u, 'owner'); }}
+                                      className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                                    >
+                                      Tornar Dono
+                                    </button>
+                                    <div className="border-t border-gray-100 my-1"></div>
+                                    <button
+                                      onClick={() => { setOpenMenuId(null); toggleBlock(u); }}
+                                      className={`w-full text-left px-4 py-2 text-sm transition ${
+                                        u.is_blocked
+                                          ? 'text-green-700 hover:bg-green-50'
+                                          : 'text-red-600 hover:bg-red-50'
+                                      }`}
+                                    >
+                                      {u.is_blocked ? 'Desbloquear' : 'Bloquear'}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
