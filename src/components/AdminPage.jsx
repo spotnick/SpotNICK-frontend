@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
@@ -17,12 +17,55 @@ import AdminProducts from './AdminProducts';
 import AdminContracts from './AdminContracts';
 import AdminEquipment from './AdminEquipment';
 
+// Menus temáticos. `ownerOnly` no item = só o dono vê;
+// um menu some sozinho quando nenhum item dele está disponível.
+const MENUS = [
+  {
+    id: 'comercial',
+    label: 'Comercial',
+    items: [
+      { tab: 'companies', label: 'Empresas' },
+      { tab: 'products',  label: 'Produtos' },
+      { tab: 'contracts', label: 'Contratos' },
+    ],
+  },
+  {
+    id: 'operacao',
+    label: 'Operação',
+    items: [
+      { tab: 'locations', label: 'Locais' },
+      { tab: 'routers',   label: 'Roteadores' },
+      { tab: 'aps',       label: 'Access Points' },
+      { tab: 'equipment', label: 'Equipamentos' },
+    ],
+  },
+  {
+    id: 'pessoas',
+    label: 'Pessoas',
+    items: [
+      { tab: 'users',     label: 'Usuários', ownerOnly: true },
+      { tab: 'campanhas', label: 'Campanhas' },
+    ],
+  },
+  {
+    id: 'sistema',
+    label: 'Sistema',
+    items: [
+      { tab: 'consumption', label: 'Consumo' },
+      { tab: 'logs',        label: 'Registros', ownerOnly: true },
+      { tab: 'infra',       label: 'Infraestrutura', ownerOnly: true },
+    ],
+  },
+];
+
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState('locations');
+  const [openMenu, setOpenMenu] = useState(null);
+  const navRef = useRef(null);
 
-  const [access, setAccess] = useState(null); // { isOwner, locationIds } | null (ainda carregando) | false (sem acesso)
+  const [access, setAccess] = useState(null); // { isOwner, locationIds } | null (carregando) | false (sem acesso)
   const [accessLoading, setAccessLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +81,21 @@ export default function AdminPage() {
       }
     })();
   }, [loading, user]);
+
+  // Fecha o menu ao clicar fora ou apertar Esc
+  useEffect(() => {
+    if (!openMenu) return;
+    const onClick = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) setOpenMenu(null);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setOpenMenu(null); };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openMenu]);
 
   if (loading || accessLoading) {
     return (
@@ -68,6 +126,21 @@ export default function AdminPage() {
     );
   }
 
+  // Filtra os itens que este administrador pode ver
+  const visibleMenus = MENUS
+    .map((m) => ({ ...m, items: m.items.filter((i) => !i.ownerOnly || isOwner) }))
+    .filter((m) => m.items.length > 0);
+
+  // Rótulo da aba atual, para o indicador de posição
+  const currentItem = visibleMenus
+    .flatMap((m) => m.items.map((i) => ({ ...i, menuLabel: m.label })))
+    .find((i) => i.tab === tab);
+
+  const selectTab = (t) => {
+    setTab(t);
+    setOpenMenu(null);
+  };
+
   return (
     <div className="min-h-screen bg-spotnicik-light">
       <header className="bg-white shadow">
@@ -87,7 +160,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* Saldo SMS - visível apenas para o dono */}
+      {/* Cards de visão geral — apenas para o dono */}
       {isOwner && (
         <div className="max-w-7xl mx-auto px-4 pt-4 flex flex-wrap gap-3">
           <SystemStatsCard />
@@ -95,134 +168,58 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Abas do admin */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 flex gap-8">
-          {isOwner && (
-            <button
-              onClick={() => setTab('users')}
-              className={`py-4 px-2 font-medium transition ${
-                tab === 'users'
-                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
-              }`}
-            >
-              Usuários
-            </button>
-          )}
-          <button
-            onClick={() => setTab('companies')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'companies'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Empresas
-          </button>
-		  <button
-            onClick={() => setTab('products')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'products'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Produtos
-          </button>
-		  <button
-            onClick={() => setTab('contracts')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'contracts'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Contratos
-          </button>
-		  <button
-            onClick={() => setTab('equipment')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'equipment'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Equipamentos
-          </button>
-		  <button
-            onClick={() => setTab('locations')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'locations'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Locais
-          </button>
-          <button
-            onClick={() => setTab('routers')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'routers'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Roteadores
-          </button>
-          <button
-            onClick={() => setTab('aps')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'aps'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Access Points
-          </button>
-          <button
-            onClick={() => setTab('consumption')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'consumption'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Consumo
-          </button>
-		  {isOwner && (
-            <button
-              onClick={() => setTab('logs')}
-              className={`py-4 px-2 font-medium transition ${
-                tab === 'logs'
-                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
-              }`}
-            >
-              Registros
-            </button>
-          )}
-          <button
-            onClick={() => setTab('campanhas')}
-            className={`py-4 px-2 font-medium transition ${
-              tab === 'campanhas'
-                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                : 'text-spotnicik-dark hover:text-spotnicik-primary'
-            }`}
-          >
-            Campanhas
-          </button>
-		  {isOwner && (
-            <button
-              onClick={() => setTab('infra')}
-              className={`py-4 px-2 font-medium transition ${
-                tab === 'infra'
-                  ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
-                  : 'text-spotnicik-dark hover:text-spotnicik-primary'
-              }`}
-            >
-              Infraestrutura
-            </button>
+      {/* Navegação agrupada por tema */}
+      <nav className="bg-white border-b" ref={navRef}>
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 flex-wrap">
+          {visibleMenus.map((menu) => {
+            const hasActive = menu.items.some((i) => i.tab === tab);
+            const isOpen = openMenu === menu.id;
+            return (
+              <div key={menu.id} className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenu(isOpen ? null : menu.id);
+                  }}
+                  className={`py-4 px-4 font-medium transition flex items-center gap-1.5 ${
+                    hasActive
+                      ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                      : 'text-spotnicik-dark hover:text-spotnicik-primary'
+                  }`}
+                >
+                  {menu.label}
+                  <span className={`text-[10px] transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+
+                {isOpen && (
+                  <div
+                    className="absolute left-0 top-full bg-white border border-gray-200 rounded-b-lg shadow-lg py-1 z-30 min-w-[180px]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {menu.items.map((item) => (
+                      <button
+                        key={item.tab}
+                        onClick={() => selectTab(item.tab)}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition ${
+                          tab === item.tab
+                            ? 'bg-spotnicik-light text-spotnicik-primary font-medium'
+                            : 'text-spotnicik-dark hover:bg-spotnicik-light'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Indicador de onde você está */}
+          {currentItem && (
+            <span className="ml-auto text-xs text-gray-400 py-4 hidden md:block">
+              {currentItem.menuLabel} › <strong className="text-spotnicik-dark">{currentItem.label}</strong>
+            </span>
           )}
         </div>
       </nav>
@@ -233,10 +230,10 @@ export default function AdminPage() {
         {tab === 'routers' && <AdminMikrotikRouters />}
         {tab === 'aps' && <AdminAccessPoints />}
         {tab === 'consumption' && <ConsumptionDashboard />}
-		{tab === 'logs' && isOwner && <LogExtraction />}
-		{tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
+        {tab === 'logs' && isOwner && <LogExtraction />}
+        {tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
         {tab === 'infra' && isOwner && <Infraestrutura />}
-		{tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
+        {tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
         {tab === 'products' && <AdminProducts isPlatformAdmin={isOwner} />}
         {tab === 'contracts' && <AdminContracts isPlatformAdmin={isOwner} />}
         {tab === 'equipment' && <AdminEquipment isPlatformAdmin={isOwner} />}
