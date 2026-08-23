@@ -55,6 +55,7 @@ export default function AdminContracts({ isPlatformAdmin }) {
   const [formError, setFormError] = useState(null);
 
   const [detail, setDetail] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   const loadContracts = useCallback(async (status) => {
@@ -73,6 +74,14 @@ export default function AdminContracts({ isPlatformAdmin }) {
   }, []);
 
   useEffect(() => { loadContracts(filterStatus); }, [loadContracts, filterStatus]);
+
+  // Fecha o menu de ações ao clicar em qualquer outro lugar
+  useEffect(() => {
+    if (!openMenuId) return;
+    const close = () => setOpenMenuId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openMenuId]);
 
   useEffect(() => {
     (async () => {
@@ -327,45 +336,77 @@ export default function AdminContracts({ isPlatformAdmin }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 items-center shrink-0">
+                    {/* Transição principal em destaque; as demais vão no menu */}
+                    {isPlatformAdmin && transitions.length > 0 && (
+                      <button
+                        onClick={() => changeStatus(c, transitions[0])}
+                        className="text-sm px-3 py-1.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
+                      >
+                        {STATUS_INFO[transitions[0]].label}
+                      </button>
+                    )}
+
                     <button
                       onClick={() => openDetail(c.id)}
-                      className="text-sm px-3 py-1.5 bg-spotnicik-primary text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                      className="text-sm px-3 py-1.5 border border-spotnicik-primary text-spotnicik-primary rounded-lg font-medium hover:bg-spotnicik-light transition"
                     >
                       Detalhes
                     </button>
+
                     {isPlatformAdmin && (
-                      <>
+                      <div className="relative">
                         <button
-                          onClick={() => openEdit(c)}
-                          className="text-sm px-3 py-1.5 border border-spotnicik-primary text-spotnicik-primary rounded-lg font-medium hover:bg-spotnicik-light transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === c.id ? null : c.id);
+                          }}
+                          className="text-sm px-2.5 py-1.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                          title="Mais ações"
                         >
-                          Editar
+                          &#8942;
                         </button>
-                        {transitions.map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => changeStatus(c, s)}
-                            className={`text-sm px-3 py-1.5 rounded-lg font-medium transition border ${
-                              s === 'cancelled'
-                                ? 'border-red-400 text-red-600 hover:bg-red-50'
-                                : s === 'active'
-                                ? 'border-green-500 text-green-700 hover:bg-green-50'
-                                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                            }`}
+
+                        {openMenuId === c.id && (
+                          <div
+                            className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[200px]"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {STATUS_INFO[s].label}
-                          </button>
-                        ))}
-                        {c.status === 'draft' && (
-                          <button
-                            onClick={() => handleDelete(c)}
-                            className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
-                          >
-                            Excluir
-                          </button>
+                            <button
+                              onClick={() => { setOpenMenuId(null); openEdit(c); }}
+                              className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                            >
+                              Editar contrato
+                            </button>
+
+                            {transitions.slice(1).map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => { setOpenMenuId(null); changeStatus(c, s); }}
+                                className={`w-full text-left px-4 py-2 text-sm transition ${
+                                  s === 'cancelled'
+                                    ? 'text-red-600 hover:bg-red-50'
+                                    : 'text-spotnicik-dark hover:bg-spotnicik-light'
+                                }`}
+                              >
+                                {STATUS_INFO[s].label}
+                              </button>
+                            ))}
+
+                            {c.status === 'draft' && (
+                              <>
+                                <div className="border-t border-gray-100 my-1"></div>
+                                <button
+                                  onClick={() => { setOpenMenuId(null); handleDelete(c); }}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                >
+                                  Excluir rascunho
+                                </button>
+                              </>
+                            )}
+                          </div>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>

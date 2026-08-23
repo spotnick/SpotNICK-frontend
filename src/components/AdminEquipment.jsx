@@ -65,6 +65,7 @@ export default function AdminEquipment({ isPlatformAdmin }) {
   const [formError, setFormError] = useState(null);
 
   const [detail, setDetail] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [assignTarget, setAssignTarget] = useState(null);
   const [assignForm, setAssignForm] = useState(EMPTY_ASSIGN);
@@ -89,6 +90,14 @@ export default function AdminEquipment({ isPlatformAdmin }) {
   }, []);
 
   useEffect(() => { loadEquipment(filterStatus, ''); }, [loadEquipment, filterStatus]);
+
+  // Fecha o menu de ações ao clicar em qualquer outro lugar
+  useEffect(() => {
+    if (!openMenuId) return;
+    const close = () => setOpenMenuId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openMenuId]);
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
@@ -304,62 +313,87 @@ export default function AdminEquipment({ isPlatformAdmin }) {
                   </div>
 
                   {isPlatformAdmin && (
-                    <div className="flex gap-2 flex-wrap">
-                      <button
-                        onClick={() => openDetail(eq.id)}
-                        className="text-sm px-3 py-1.5 bg-spotnicik-primary text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                      >
-                        Ficha
-                      </button>
-                      <button
-                        onClick={() => openEdit(eq)}
-                        className="text-sm px-3 py-1.5 border border-spotnicik-primary text-spotnicik-primary rounded-lg font-medium hover:bg-spotnicik-light transition"
-                      >
-                        Editar
-                      </button>
-
+                    <div className="flex gap-2 items-center shrink-0">
+                      {/* Ação principal, conforme o status */}
                       {['stock', 'maintenance', 'defective'].includes(eq.status) && (
                         <button
                           onClick={() => { setAssignTarget(eq); setAssignForm(EMPTY_ASSIGN); }}
-                          className="text-sm px-3 py-1.5 border border-green-500 text-green-700 rounded-lg font-medium hover:bg-green-50 transition"
+                          className="text-sm px-3 py-1.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
                         >
                           Ceder
                         </button>
                       )}
-
                       {eq.status === 'assigned' && (
                         <button
                           onClick={() => { setReturnTarget(eq); setReturnForm(EMPTY_RETURN); }}
-                          className="text-sm px-3 py-1.5 border border-yellow-500 text-yellow-700 rounded-lg font-medium hover:bg-yellow-50 transition"
+                          className="text-sm px-3 py-1.5 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition"
                         >
                           Devolver
                         </button>
                       )}
 
-                      {eq.status === 'stock' && (
+                      <button
+                        onClick={() => openDetail(eq.id)}
+                        className="text-sm px-3 py-1.5 border border-spotnicik-primary text-spotnicik-primary rounded-lg font-medium hover:bg-spotnicik-light transition"
+                      >
+                        Ficha
+                      </button>
+
+                      {/* Demais ações agrupadas */}
+                      <div className="relative">
                         <button
-                          onClick={() => changeStatus(eq, 'maintenance', 'Enviar para manutenção')}
-                          className="text-sm px-3 py-1.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === eq.id ? null : eq.id);
+                          }}
+                          className="text-sm px-2.5 py-1.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                          title="Mais ações"
                         >
-                          Manutenção
+                          &#8942;
                         </button>
-                      )}
-                      {eq.status === 'maintenance' && (
-                        <button
-                          onClick={() => changeStatus(eq, 'stock', 'Retornar ao estoque')}
-                          className="text-sm px-3 py-1.5 border border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 transition"
-                        >
-                          Voltar ao estoque
-                        </button>
-                      )}
-                      {['stock', 'maintenance', 'defective'].includes(eq.status) && (
-                        <button
-                          onClick={() => changeStatus(eq, 'written_off', 'Dar baixa neste equipamento')}
-                          className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg hover:bg-red-50 transition"
-                        >
-                          Baixa
-                        </button>
-                      )}
+
+                        {openMenuId === eq.id && (
+                          <div
+                            className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[180px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => { setOpenMenuId(null); openEdit(eq); }}
+                              className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                            >
+                              Editar dados
+                            </button>
+
+                            {eq.status === 'stock' && (
+                              <button
+                                onClick={() => { setOpenMenuId(null); changeStatus(eq, 'maintenance', 'Enviar para manutenção'); }}
+                                className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                              >
+                                Enviar para manutenção
+                              </button>
+                            )}
+                            {eq.status === 'maintenance' && (
+                              <button
+                                onClick={() => { setOpenMenuId(null); changeStatus(eq, 'stock', 'Retornar ao estoque'); }}
+                                className="w-full text-left px-4 py-2 text-sm text-spotnicik-dark hover:bg-spotnicik-light transition"
+                              >
+                                Voltar ao estoque
+                              </button>
+                            )}
+                            {['stock', 'maintenance', 'defective'].includes(eq.status) && (
+                              <>
+                                <div className="border-t border-gray-100 my-1"></div>
+                                <button
+                                  onClick={() => { setOpenMenuId(null); changeStatus(eq, 'written_off', 'Dar baixa neste equipamento'); }}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                >
+                                  Dar baixa
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
