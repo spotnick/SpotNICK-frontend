@@ -15,6 +15,7 @@ import Infraestrutura from './Infraestrutura';
 import AdminCompanies from './AdminCompanies';
 import AdminProducts from './AdminProducts';
 import AdminContracts from './AdminContracts';
+import AdminEquipment from './AdminEquipment';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -140,6 +141,16 @@ export default function AdminPage() {
             Contratos
           </button>
 		  <button
+            onClick={() => setTab('equipment')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'equipment'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Equipamentos
+          </button>
+		  <button
             onClick={() => setTab('locations')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'locations'
@@ -228,6 +239,7 @@ export default function AdminPage() {
 		{tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
         {tab === 'products' && <AdminProducts isPlatformAdmin={isOwner} />}
         {tab === 'contracts' && <AdminContracts isPlatformAdmin={isOwner} />}
+        {tab === 'equipment' && <AdminEquipment isPlatformAdmin={isOwner} />}
       </main>
     </div>
   );
