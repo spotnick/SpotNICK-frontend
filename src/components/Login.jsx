@@ -50,20 +50,22 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 text-sm">
             {error}
             {emailNotVerified && (
-              <div className="mt-2 space-y-1">
-                <div>
-                  <Link to="/resend-verification" className="text-spotnicik-primary font-medium underline">
-                    Reenviar e-mail de verificação
-                  </Link>
-                </div>
-                <div>
-                  <Link to={`/verify-sms?email=${encodeURIComponent(email)}`} className="text-spotnicik-primary font-medium underline">
-                    Ou verificar por código SMS
-                  </Link>
-                </div>
+              <div className="mt-3 flex flex-col gap-2">
+                <Link
+                  to={`/verify-sms?email=${encodeURIComponent(email)}`}
+                  className="block w-full bg-spotnicik-primary text-white text-center py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+                >
+                  Verificar por SMS
+                </Link>
+                <Link
+                  to="/resend-verification"
+                  className="text-center text-xs text-red-700 underline"
+                >
+                  Prefiro receber por e-mail
+                </Link>
               </div>
             )}
           </div>

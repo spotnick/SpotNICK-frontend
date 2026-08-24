@@ -62,6 +62,17 @@ export default function PortalWifi() {
     }
   };
 
+  // Monta a URL preservando o contexto do HotSpot — sem isso a pessoa
+  // verifica a conta mas não consegue voltar para conectar.
+  const withWifiCtx = (path) =>
+    `${path}?location=${encodeURIComponent(locationSlug || '')}` +
+    `&link-login-only=${encodeURIComponent(linkLoginOnly || '')}` +
+    `&link-orig=${encodeURIComponent(linkOrig || '')}` +
+    `&mac=${encodeURIComponent(mac || '')}`;
+
+  // Conta não verificada tem uma solução específica — destacamos ela
+  const needsVerification = error && /verific/i.test(error);
+
   useEffect(() => {
     if (radiusCreds && formRef.current) {
       // Liberação concluída: o contexto já cumpriu seu papel, pode limpar.
@@ -133,7 +144,25 @@ export default function PortalWifi() {
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4">{error}</div>
+          <div className="bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4">
+            {error}
+            {needsVerification && (
+              <div className="mt-3 flex flex-col gap-2">
+                <a
+                  href={withWifiCtx('/verify-sms') + `&email=${encodeURIComponent(email)}`}
+                  className="block w-full bg-spotnicik-primary text-white text-center py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+                >
+                  Verificar por SMS
+                </a>
+                <a
+                  href={withWifiCtx('/resend-verification')}
+                  className="text-center text-xs text-red-700 underline"
+                >
+                  Prefiro receber por e-mail
+                </a>
+              </div>
+            )}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,15 +222,20 @@ export default function PortalWifi() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Ainda não tem conta?{' '}
-          <a
-            href={`/register?location=${encodeURIComponent(locationSlug || '')}&link-login-only=${encodeURIComponent(linkLoginOnly || '')}&link-orig=${encodeURIComponent(linkOrig || '')}&mac=${encodeURIComponent(mac || '')}`}
-            className="text-spotnicik-primary hover:underline"
-          >
-            Cadastre-se
-          </a>
-        </p>
+        <div className="text-center text-xs text-gray-400 mt-6 space-y-1.5">
+          <p>
+            Ainda não tem conta?{' '}
+            <a href={withWifiCtx('/register')} className="text-spotnicik-primary hover:underline">
+              Cadastre-se
+            </a>
+          </p>
+          <p>
+            Não verificou sua conta?{' '}
+            <a href={withWifiCtx('/verify-sms')} className="text-spotnicik-primary hover:underline">
+              Verificar agora
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
