@@ -77,10 +77,23 @@ export default function AdminCompanies({ isPlatformAdmin }) {
     setShowForm(true);
   };
 
-  const openEdit = (c) => {
-    setForm({ ...EMPTY_FORM, ...c });
-    setEditingId(c.id);
+  // Busca o registro COMPLETO antes de abrir a edição.
+  // A listagem devolve só um subconjunto dos campos (nome, documento,
+  // cidade...), então montar o formulário a partir dela deixaria
+  // inscrição estadual, endereço e observações vazios — e o salvamento
+  // apagaria esses dados no banco.
+  const openEdit = async (c) => {
     setFormError(null);
+    try {
+      const { data } = await api.get(`/api/admin/companies/${c.id}`);
+      setForm({ ...EMPTY_FORM, ...data.company });
+    } catch {
+      // Se a busca falhar, usa o que a listagem tem (melhor que nada,
+      // mas avisa para não apagar dados sem querer)
+      setForm({ ...EMPTY_FORM, ...c });
+      setFormError('Não foi possível carregar todos os campos. Revise antes de salvar.');
+    }
+    setEditingId(c.id);
     setShowForm(true);
   };
 
