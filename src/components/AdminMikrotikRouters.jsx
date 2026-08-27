@@ -25,7 +25,8 @@ export default function AdminMikrotikRouters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ location_id: '', name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
+  const [form, setForm] = useState({ location_id: '', name: '', router_type: 'wifi_direct', ethernet_port: 'ether2', equipment_id: '' });
+  const [equipment, setEquipment] = useState([]);
   const [saving, setSaving] = useState(false);
   const [scriptModal, setScriptModal] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -39,6 +40,11 @@ export default function AdminMikrotikRouters() {
         const { data } = await api.get('/api/admin/locations');
         setLocations(data.locations || []);
       } catch { /* ignora */ }
+      try {
+        // Só equipamentos em estoque podem ser vinculados a um roteador novo
+        const { data } = await api.get('/api/admin/equipment', { params: { status: 'stock' } });
+        setEquipment(data.equipment || []);
+      } catch { /* ignora — o vínculo é opcional */ }
     })();
   }, []);
 
@@ -82,7 +88,7 @@ export default function AdminMikrotikRouters() {
   }, [loadRouters, loadOnlineCounts, filterLocation]);
 
   const openCreate = () => {
-    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct', ethernet_port: 'ether2' });
+    setForm({ location_id: filterLocation || (locations[0]?.id || ''), name: '', router_type: 'wifi_direct', ethernet_port: 'ether2', equipment_id: '' });
     setShowForm(true);
   };
 
@@ -222,6 +228,11 @@ export default function AdminMikrotikRouters() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                       {r.locations?.name && <span>📍 {r.locations.name}</span>}
                       <span>{ROUTER_TYPE_LABEL[r.router_type] || ROUTER_TYPE_LABEL.wifi_direct}</span>
+                      {r.equipment?.serial_number && (
+                        <span title="Equipamento vinculado ao patrimônio">
+                          📦 {r.equipment.serial_number}
+                        </span>
+                      )}
                       {r.current_ip && (
                         <span className="flex items-center gap-1">
                           IP: {r.current_ip}
@@ -395,6 +406,32 @@ export default function AdminMikrotikRouters() {
                     </p>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-spotnicik-dark mb-1">
+                  Equipamento do patrimônio (opcional)
+                </label>
+                <select
+                  name="equipment_id"
+                  value={form.equipment_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                >
+                  <option value="">— Não vincular —</option>
+                  {equipment.map((eq) => (
+                    <option key={eq.id} value={eq.id}>
+                      {eq.serial_number}
+                      {[eq.brand, eq.model].filter(Boolean).length > 0 &&
+                        ` · ${[eq.brand, eq.model].filter(Boolean).join(' ')}`}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {equipment.length === 0
+                    ? 'Nenhum equipamento em estoque. Cadastre em Operação › Equipamentos.'
+                    : 'Liga este roteador ao controle patrimonial (série, nota fiscal, regime).'}
+                </p>
               </div>
 
               <div className="flex gap-3 pt-2">
