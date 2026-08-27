@@ -13,7 +13,14 @@ const BILLING_LABELS = {
 const MAX_BANNER_SIZE = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_BANNER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+const OPERATION_LABELS = {
+  saas_b2b: 'SaaS B2B (empresa paga)',
+  operacao_b2c: 'Operação B2C (usuário paga)',
+};
+
 const emptyForm = {
+  company_id: '',
+  operation_mode: 'operacao_b2c',
   name: '',
   billing_mode: 'free',
   free_minutes: 0,
@@ -33,6 +40,7 @@ export default function AdminLocations({ isOwner }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [companies, setCompanies] = useState([]);
   const [saving, setSaving] = useState(false);
 
   // Estado da publicidade
@@ -61,6 +69,15 @@ export default function AdminLocations({ isOwner }) {
   useEffect(() => {
     loadLocations();
   }, [loadLocations]);
+  
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await api.get('/api/admin/companies');
+        setCompanies(data.companies || []);
+      } catch { /* ignora — o backend usa a empresa interna por padrão */ }
+    })();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -74,7 +91,9 @@ export default function AdminLocations({ isOwner }) {
   const openEdit = (loc) => {
     setEditing(loc);
     setForm({
-      name: loc.name,
+      company_id: loc.company_id || '',
+      operation_mode: loc.operation_mode || 'operacao_b2c',
+	  name: loc.name,
       billing_mode: loc.billing_mode,
       free_minutes: loc.free_minutes || 0,
       show_ads: loc.show_ads || false,
@@ -164,7 +183,9 @@ export default function AdminLocations({ isOwner }) {
     setSaving(true);
     try {
       const payload = {
-        name: form.name,
+        company_id: form.company_id || null,
+        operation_mode: form.operation_mode,
+		name: form.name,
         billing_mode: form.billing_mode,
         free_minutes: form.billing_mode === 'free_then_paid' ? Number(form.free_minutes) : 0,
         show_ads: form.show_ads,
@@ -272,6 +293,12 @@ export default function AdminLocations({ isOwner }) {
                     </span>
                     <span>Publicidade: <strong>{loc.show_ads ? 'Sim' : 'Não'}</strong></span>
                     <span className="text-gray-400">/{loc.slug}</span>
+					{loc.companies && (
+                      <span>🏢 {loc.companies.trade_name || loc.companies.legal_name}</span>
+                    )}
+                    <span className={loc.operation_mode === 'saas_b2b' ? 'text-spotnicik-primary font-medium' : ''}>
+                      {OPERATION_LABELS[loc.operation_mode] || 'Operação B2C'}
+                    </span>
                   </div>
                 </div>
 
@@ -334,6 +361,48 @@ export default function AdminLocations({ isOwner }) {
               </div>
 
               <div>
+			  
+			  {isOwner && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-spotnicik-dark mb-1">
+                      Empresa
+                    </label>
+                    <select
+                      name="company_id"
+                      value={form.company_id}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                    >
+                      <option value="">— Operação própria (NICK NETWORK) —</option>
+                      {companies.filter((c) => !c.is_internal).map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.trade_name || c.legal_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+ 
+                  <div>
+                    <label className="block text-sm font-medium text-spotnicik-dark mb-1">
+                      Modo de Operação
+                    </label>
+                    <select
+                      name="operation_mode"
+                      value={form.operation_mode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                    >
+                      <option value="operacao_b2c">Operação B2C (usuário final paga)</option>
+                      <option value="saas_b2b">SaaS B2B (a empresa paga, WiFi grátis)</option>
+                    </select>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Em SaaS B2B o hóspede não paga pelo acesso — quem paga é a empresa contratante.
+                    </p>
+                  </div>
+                </>
+              )}
+			  
                 <label className="block text-sm font-medium text-spotnicik-dark mb-1">Modo de Cobrança</label>
                 <select
                   name="billing_mode"
