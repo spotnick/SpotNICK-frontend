@@ -20,8 +20,8 @@ function toCsv(logs) {
   return csv;
 }
 
-export default function LogExtraction() {
-  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '' });
+export default function LogExtraction({ onOpenHistory }) {
+  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '', purpose: '' });
   const [logs, setLogs] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,6 +40,7 @@ export default function LogExtraction() {
       if (filters.ip) params.ip = filters.ip;
       if (filters.date_from) params.date_from = filters.date_from;
       if (filters.date_to) params.date_to = filters.date_to;
+      if (filters.purpose) params.purpose = filters.purpose;
 
       const { data } = await api.get('/api/admin/access-logs/search', { params });
       setLogs(data.logs || []);
@@ -66,10 +67,22 @@ export default function LogExtraction() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-spotnicik-primary mb-2">Extração de Registros de Conexão</h2>
-      <p className="text-xs text-gray-500 mb-6">
-        Toda consulta realizada aqui é registrada automaticamente para fins de auditoria (data, filtros usados, quantidade de resultados).
-      </p>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-spotnicik-primary mb-2">Extração de Registros de Conexão</h2>
+          <p className="text-xs text-gray-500">
+            Toda consulta realizada aqui é registrada automaticamente para fins de auditoria (data, filtros usados, quantidade de resultados).
+          </p>
+        </div>
+        {onOpenHistory && (
+          <button
+            onClick={onOpenHistory}
+            className="text-sm px-3 py-1.5 border border-spotnicik-primary text-spotnicik-primary rounded-lg font-medium hover:bg-spotnicik-light transition whitespace-nowrap"
+          >
+            Ver histórico de auditoria
+          </button>
+        )}
+      </div>
 
       <div className="bg-white rounded-lg shadow p-5 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -104,6 +117,22 @@ export default function LogExtraction() {
             />
           </div>
         </div>
+
+        {/* Finalidade — opcional. Registrada junto com a auditoria da consulta. */}
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+            Finalidade da extração <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <input
+            type="text" name="purpose" value={filters.purpose} onChange={handleChange}
+            placeholder="Ex: Ofício nº 123/2026 — Vara Criminal de ..."
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+          />
+          <p className="text-[11px] text-gray-400 mt-1">
+            Fica registrada no histórico de auditoria junto com esta consulta.
+          </p>
+        </div>
+
         <div className="flex gap-3">
           <button
             onClick={handleSearch}

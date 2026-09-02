@@ -9,6 +9,7 @@ import AdminMikrotikRouters from './AdminMikrotikRouters';
 import ConsumptionDashboard from './ConsumptionDashboard';
 import SmsBalanceCard from './SmsBalanceCard';
 import LogExtraction from './LogExtraction';
+import AuditHistory from './AuditHistory';
 import Campanhas from './Campanhas';
 import SystemStatsCard from './SystemStatsCard';
 import Infraestrutura from './Infraestrutura';
@@ -16,7 +17,6 @@ import AdminCompanies from './AdminCompanies';
 import AdminProducts from './AdminProducts';
 import AdminContracts from './AdminContracts';
 import AdminEquipment from './AdminEquipment';
-import AdminAdmins from './AdminAdmins';
 
 // Menus temáticos. `ownerOnly` no item = só o dono vê;
 // um menu some sozinho quando nenhum item dele está disponível.
@@ -45,7 +45,6 @@ const MENUS = [
     label: 'Pessoas',
     items: [
       { tab: 'users',     label: 'Usuários', ownerOnly: true },
-      { tab: 'admins',    label: 'Administradores' },
       { tab: 'campanhas', label: 'Campanhas' },
     ],
   },
@@ -55,6 +54,7 @@ const MENUS = [
     items: [
       { tab: 'consumption', label: 'Consumo' },
       { tab: 'logs',        label: 'Registros', ownerOnly: true },
+      { tab: 'audit',       label: 'Histórico de Auditoria', ownerOnly: true },
       { tab: 'infra',       label: 'Infraestrutura', ownerOnly: true },
     ],
   },
@@ -232,16 +232,18 @@ export default function AdminPage() {
         {tab === 'routers' && <AdminMikrotikRouters />}
         {tab === 'aps' && <AdminAccessPoints />}
         {tab === 'consumption' && <ConsumptionDashboard />}
-        {tab === 'logs' && isOwner && <LogExtraction />}
+        {tab === 'logs' && isOwner && (
+          <LogExtraction onOpenHistory={() => setTab('audit')} />
+        )}
+        {tab === 'audit' && isOwner && (
+          <AuditHistory onBack={() => setTab('logs')} />
+        )}
         {tab === 'campanhas' && <Campanhas isOwner={isOwner} />}
         {tab === 'infra' && isOwner && <Infraestrutura />}
         {tab === 'companies' && <AdminCompanies isPlatformAdmin={isOwner} />}
         {tab === 'products' && <AdminProducts isPlatformAdmin={isOwner} />}
         {tab === 'contracts' && <AdminContracts isPlatformAdmin={isOwner} />}
         {tab === 'equipment' && <AdminEquipment isPlatformAdmin={isOwner} />}
-		{tab === 'admins' && (
-          <AdminAdmins isPlatformAdmin={isOwner} currentAdminId={user?.id} />
-        )}
       </main>
     </div>
   );
