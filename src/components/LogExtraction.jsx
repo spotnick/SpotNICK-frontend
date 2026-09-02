@@ -21,7 +21,19 @@ function toCsv(logs) {
 }
 
 export default function LogExtraction({ onOpenHistory }) {
-  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '', purpose: '' });
+  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '', purpose: '', extraction_type: '' });
+  const [tipos, setTipos] = useState([]);
+
+  // Os tipos e a regra de obrigatoriedade vêm do backend, para não
+  // duplicar a definição em dois lugares.
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await api.get('/api/admin/extraction-types');
+        setTipos(data.tipos || []);
+      } catch { /* o backend valida de qualquer forma */ }
+    })();
+  }, []);
   const [logs, setLogs] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -41,6 +53,7 @@ export default function LogExtraction({ onOpenHistory }) {
       if (filters.date_from) params.date_from = filters.date_from;
       if (filters.date_to) params.date_to = filters.date_to;
       if (filters.purpose) params.purpose = filters.purpose;
+      params.extraction_type = filters.extraction_type;
 
       const { data } = await api.get('/api/admin/access-logs/search', { params });
       setLogs(data.logs || []);
@@ -64,6 +77,10 @@ export default function LogExtraction({ onOpenHistory }) {
   };
 
   const formatDate = (d) => (d ? new Date(d).toLocaleString('pt-BR') : '-');
+
+  // Obrigatoriedade derivada da lista do backend — não replicada aqui
+  const finalidadeObrigatoria =
+    tipos.find((t) => t.valor === filters.extraction_type)?.finalidade_obrigatoria || false;
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -118,18 +135,47 @@ export default function LogExtraction({ onOpenHistory }) {
           </div>
         </div>
 
-        {/* Finalidade — opcional. Registrada junto com a auditoria da consulta. */}
+        {/* Tipo da extração — determina se a finalidade é obrigatória */}
         <div className="mb-4">
           <label className="block text-xs font-medium text-spotnicik-dark mb-1">
-            Finalidade da extração <span className="text-gray-400 font-normal">(opcional)</span>
+            Tipo da extração <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="extraction_type" value={filters.extraction_type} onChange={handleChange}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+          >
+            <option value="">Selecione...</option>
+            {tipos.map((t) => (
+              <option key={t.valor} value={t.valor}>{t.descricao}</option>
+            ))}
+          </select>
+          <p className="text-[11px] text-gray-400 mt-1">
+            Fica registrado na auditoria. Extrações destinadas a atender requisição
+            externa, investigação ou incidente exigem a declaração da finalidade.
+          </p>
+        </div>
+
+        {/* Finalidade — obrigatória conforme o tipo selecionado */}
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+            Finalidade da extração{' '}
+            {finalidadeObrigatoria
+              ? <span className="text-red-500">*</span>
+              : <span className="text-gray-400 font-normal">(opcional)</span>}
           </label>
           <input
             type="text" name="purpose" value={filters.purpose} onChange={handleChange}
             placeholder="Ex: Ofício nº 123/2026 — Vara Criminal de ..."
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+            className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary ${
+              finalidadeObrigatoria && !filters.purpose.trim()
+                ? 'border-yellow-400 bg-yellow-50'
+                : 'border-gray-300'
+            }`}
           />
           <p className="text-[11px] text-gray-400 mt-1">
-            Fica registrada no histórico de auditoria junto com esta consulta.
+            {finalidadeObrigatoria
+              ? 'Obrigatória para este tipo de extração. Informe o fundamento (ex: número do processo).'
+              : 'Fica registrada no histórico de auditoria junto com esta consulta.'}
           </p>
         </div>
 

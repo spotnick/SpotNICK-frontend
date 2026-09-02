@@ -3,6 +3,23 @@ import api from '../services/api';
 
 // Rótulos legíveis para os filtros gravados na auditoria.
 // A exibição é traduzida; o conteúdo armazenado não é alterado.
+// Rótulos dos tipos de extração. A regra de obrigatoriedade vive no
+// backend; aqui é apenas exibição do que foi declarado.
+const TYPE_LABEL = {
+  operacional_interna: 'Operacional interna',
+  ordem_judicial: 'Ordem judicial',
+  requisicao_administrativa: 'Requisição administrativa',
+  investigacao_interna: 'Investigação interna',
+  incidente_seguranca: 'Incidente de segurança',
+  direito_titular: 'Direito do titular',
+};
+
+// Tipos considerados sensíveis — destacados visualmente no histórico
+const TYPE_SENSIVEL = new Set([
+  'ordem_judicial', 'requisicao_administrativa',
+  'investigacao_interna', 'incidente_seguranca', 'direito_titular',
+]);
+
 const FILTER_LABEL = {
   email: 'E-mail',
   ip: 'IP',
@@ -122,6 +139,15 @@ export default function AuditHistory({ onBack }) {
                         </span>
                         {e.actor_email && (
                           <span className="text-xs text-gray-500">{e.actor_email}</span>
+                        )}
+                        {e.extraction_type && (
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full ${
+                            TYPE_SENSIVEL.has(e.extraction_type)
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {TYPE_LABEL[e.extraction_type] || e.extraction_type}
+                          </span>
                         )}
                       </div>
 
