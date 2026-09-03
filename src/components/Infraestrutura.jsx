@@ -247,7 +247,38 @@ export default function Infraestrutura() {
             )}
           </div>
 
-          {/* Placeholder restante */}
+          {/* Backblaze B2 — repositório de backups */}
+          <ServiceCard title="Backblaze B2 (Backups)" status={data.backblaze?.status}>
+            {data.backblaze?.status === 'ok' ? (
+              <>
+                <p className="text-2xl font-bold text-spotnicik-dark">
+                  {data.backblaze.arquivos ?? 0}{' '}
+                  <span className="text-sm font-normal text-gray-400">backup(s) armazenado(s)</span>
+                </p>
+                {data.backblaze.ultimo_backup ? (
+                  <>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Último: {new Date(data.backblaze.ultimo_backup.em).toLocaleString('pt-BR')}
+                      {' · '}{data.backblaze.ultimo_backup.tamanho_kb} KB
+                    </p>
+                    {/* Um backup que parou de chegar é o tipo de falha que só
+                        aparece quando você precisa dele — daí o alerta explícito */}
+                    {(Date.now() - new Date(data.backblaze.ultimo_backup.em).getTime()) / 86400000 > 2 && (
+                      <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded mt-2">
+                        Nenhum backup nas últimas 48h — verifique a rotina.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-yellow-700 mt-1">Nenhum backup enviado ainda.</p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">Bucket: {data.backblaze.bucket}</p>
+              </>
+            ) : (
+              <p className="text-sm text-red-600">{data.backblaze?.erro || data.backblaze?.error}</p>
+            )}
+          </ServiceCard>
+
           {/* DigitalOcean */}
           <ServiceCard title="DigitalOcean (VPS FreeRADIUS)" status={data.digitalocean?.status}>
             {data.digitalocean?.status === 'ok' ? (
