@@ -21,8 +21,9 @@ function toCsv(logs) {
 }
 
 export default function LogExtraction({ onOpenHistory }) {
-  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '', purpose: '', extraction_type: '' });
+  const [filters, setFilters] = useState({ email: '', ip: '', date_from: '', date_to: '', purpose: '', extraction_type: '', legal_request_id: '' });
   const [tipos, setTipos] = useState([]);
+  const [requisicoes, setRequisicoes] = useState([]);
 
   // Os tipos e a regra de obrigatoriedade vêm do backend, para não
   // duplicar a definição em dois lugares.
@@ -31,6 +32,11 @@ export default function LogExtraction({ onOpenHistory }) {
       try {
         const { data } = await api.get('/api/admin/extraction-types');
         setTipos(data.tipos || []);
+      } catch { /* o backend valida de qualquer forma */ }
+      try {
+        // Só requisições aprovadas podem fundamentar uma extração
+        const { data } = await api.get('/api/admin/legal-requests', { params: { status: 'approved' } });
+        setRequisicoes(data.requests || []);
       } catch { /* o backend valida de qualquer forma */ }
     })();
   }, []);
@@ -54,6 +60,7 @@ export default function LogExtraction({ onOpenHistory }) {
       if (filters.date_to) params.date_to = filters.date_to;
       if (filters.purpose) params.purpose = filters.purpose;
       params.extraction_type = filters.extraction_type;
+      if (filters.legal_request_id) params.legal_request_id = filters.legal_request_id;
 
       const { data } = await api.get('/api/admin/access-logs/search', { params });
       setLogs(data.logs || []);
@@ -155,29 +162,54 @@ export default function LogExtraction({ onOpenHistory }) {
           </p>
         </div>
 
-        {/* Finalidade — obrigatória conforme o tipo selecionado */}
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-spotnicik-dark mb-1">
-            Finalidade da extração{' '}
-            {finalidadeObrigatoria
-              ? <span className="text-red-500">*</span>
-              : <span className="text-gray-400 font-normal">(opcional)</span>}
-          </label>
-          <input
-            type="text" name="purpose" value={filters.purpose} onChange={handleChange}
-            placeholder="Ex: Ofício nº 123/2026 — Vara Criminal de ..."
-            className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary ${
-              finalidadeObrigatoria && !filters.purpose.trim()
-                ? 'border-yellow-400 bg-yellow-50'
-                : 'border-gray-300'
-            }`}
-          />
-          <p className="text-[11px] text-gray-400 mt-1">
-            {finalidadeObrigatoria
-              ? 'Obrigatória para este tipo de extração. Informe o fundamento (ex: número do processo).'
-              : 'Fica registrada no histórico de auditoria junto com esta consulta.'}
-          </p>
-        </div>
+        {/* Requisição aprovada — obrigatória nos tipos sensíveis (Bloco 7).
+            Substitui a finalidade em texto livre: o fundamento passa a ser
+            uma requisição registrada, documentada e aprovada. */}
+        {finalidadeObrigatoria ? (
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+              Requisição que fundamenta a extração <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="legal_request_id" value={filters.legal_request_id} onChange={handleChange}
+              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary ${
+                !filters.legal_request_id ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Selecione uma requisição aprovada...</option>
+              {requisicoes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.protocol} — {r.requesting_authority}
+                  {r.case_number ? ` (${r.case_number})` : ''}
+                </option>
+              ))}
+            </select>
+            {requisicoes.length === 0 ? (
+              <p className="text-[11px] text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded mt-1">
+                Nenhuma requisição aprovada disponível. Registre a requisição, anexe
+                o documento e aprove na aba Requisições antes de extrair.
+              </p>
+            ) : (
+              <p className="text-[11px] text-gray-400 mt-1">
+                A finalidade registrada na auditoria deriva da requisição selecionada.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+              Finalidade da consulta <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input
+              type="text" name="purpose" value={filters.purpose} onChange={handleChange}
+              placeholder="Ex: diagnóstico de conexão do local X"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Fica registrada no histórico de auditoria junto com esta consulta.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button

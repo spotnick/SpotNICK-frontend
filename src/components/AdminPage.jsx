@@ -10,6 +10,7 @@ import ConsumptionDashboard from './ConsumptionDashboard';
 import SmsBalanceCard from './SmsBalanceCard';
 import LogExtraction from './LogExtraction';
 import AuditHistory from './AuditHistory';
+import LegalRequests from './LegalRequests';
 import Campanhas from './Campanhas';
 import SystemStatsCard from './SystemStatsCard';
 import Infraestrutura from './Infraestrutura';
@@ -55,6 +56,7 @@ const MENUS = [
       { tab: 'consumption', label: 'Consumo' },
       { tab: 'logs',        label: 'Registros', ownerOnly: true },
       { tab: 'audit',       label: 'Histórico de Auditoria', ownerOnly: true },
+      { tab: 'legal',       label: 'Requisições', ownerOnly: true },
       { tab: 'infra',       label: 'Infraestrutura', ownerOnly: true },
     ],
   },
@@ -235,6 +237,7 @@ export default function AdminPage() {
         {tab === 'logs' && isOwner && (
           <LogExtraction onOpenHistory={() => setTab('audit')} />
         )}
+        {tab === 'legal' && isOwner && <LegalRequests />}
         {tab === 'audit' && isOwner && (
           <AuditHistory onBack={() => setTab('logs')} />
         )}
