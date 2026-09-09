@@ -86,14 +86,18 @@ export default function AdminContracts({ isPlatformAdmin }) {
   useEffect(() => {
     (async () => {
       try {
-        const [c, p, l] = await Promise.all([
+        // allSettled em vez de all: o catálogo de produtos é restrito à
+        // plataforma, e com Promise.all um 403 ali esvaziaria também as
+        // listas de empresas e locais — quebrando a tela inteira por
+        // causa de um recurso que só o formulário de criação usa.
+        const [c, p, l] = await Promise.allSettled([
           api.get('/api/admin/companies'),
           api.get('/api/admin/products'),
           api.get('/api/admin/locations'),
         ]);
-        setCompanies(c.data.companies || []);
-        setProducts(p.data.products || []);
-        setLocations(l.data.locations || []);
+        if (c.status === 'fulfilled') setCompanies(c.value.data.companies || []);
+        if (p.status === 'fulfilled') setProducts(p.value.data.products || []);
+        if (l.status === 'fulfilled') setLocations(l.value.data.locations || []);
       } catch { /* ignora */ }
     })();
   }, []);

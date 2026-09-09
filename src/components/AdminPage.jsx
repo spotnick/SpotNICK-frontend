@@ -28,7 +28,7 @@ const MENUS = [
     label: 'Comercial',
     items: [
       { tab: 'companies', label: 'Empresas' },
-      { tab: 'products',  label: 'Produtos' },
+      { tab: 'products',  label: 'Produtos', ownerOnly: true },
       { tab: 'contracts', label: 'Contratos' },
     ],
   },
@@ -154,7 +154,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-spotnicik-primary">SpotNICK</h1>
             <span className="text-xs bg-spotnicik-dark text-white px-2 py-1 rounded">
-              {isOwner ? 'ADMIN' : 'ADMIN DE LOCAL'}
+              {isOwner ? 'ADMIN' : (access?.companyId ? 'ADMIN DE EMPRESA' : 'ADMIN DE LOCAL')}
             </span>
           </div>
           <button
